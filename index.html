@@ -56,53 +56,53 @@ const { useState, useEffect, useCallback, useRef, useMemo } = React;
 // DATA
 // ═══════════════════════════════════════════
 const HIRAGANA = [
-  {char:'あ',romaji:'a'},{char:'い',romaji:'i'},{char:'う',romaji:'u'},{char:'え',romaji:'e'},{char:'お',romaji:'o'},
-  {char:'か',romaji:'ka'},{char:'き',romaji:'ki'},{char:'く',romaji:'ku'},{char:'け',romaji:'ke'},{char:'こ',romaji:'ko'},
-  {char:'さ',romaji:'sa'},{char:'し',romaji:'shi'},{char:'す',romaji:'su'},{char:'せ',romaji:'se'},{char:'そ',romaji:'so'},
-  {char:'た',romaji:'ta'},{char:'ち',romaji:'chi'},{char:'つ',romaji:'tsu'},{char:'て',romaji:'te'},{char:'と',romaji:'to'},
-  {char:'な',romaji:'na'},{char:'に',romaji:'ni'},{char:'ぬ',romaji:'nu'},{char:'ね',romaji:'ne'},{char:'の',romaji:'no'},
-  {char:'は',romaji:'ha'},{char:'ひ',romaji:'hi'},{char:'ふ',romaji:'fu'},{char:'へ',romaji:'he'},{char:'ほ',romaji:'ho'},
-  {char:'ま',romaji:'ma'},{char:'み',romaji:'mi'},{char:'む',romaji:'mu'},{char:'め',romaji:'me'},{char:'も',romaji:'mo'},
-  {char:'や',romaji:'ya'},{char:'ゆ',romaji:'yu'},{char:'よ',romaji:'yo'},
-  {char:'ら',romaji:'ra'},{char:'り',romaji:'ri'},{char:'る',romaji:'ru'},{char:'れ',romaji:'re'},{char:'ろ',romaji:'ro'},
-  {char:'わ',romaji:'wa'},{char:'を',romaji:'wo'},{char:'ん',romaji:'n'},
+  {char:'あ',romaji:'a',pron:'아'},{char:'い',romaji:'i',pron:'이'},{char:'う',romaji:'u',pron:'우'},{char:'え',romaji:'e',pron:'에'},{char:'お',romaji:'o',pron:'오'},
+  {char:'か',romaji:'ka',pron:'카'},{char:'き',romaji:'ki',pron:'키'},{char:'く',romaji:'ku',pron:'쿠'},{char:'け',romaji:'ke',pron:'케'},{char:'こ',romaji:'ko',pron:'코'},
+  {char:'さ',romaji:'sa',pron:'사'},{char:'し',romaji:'shi',pron:'시'},{char:'す',romaji:'su',pron:'스'},{char:'せ',romaji:'se',pron:'세'},{char:'そ',romaji:'so',pron:'소'},
+  {char:'た',romaji:'ta',pron:'타'},{char:'ち',romaji:'chi',pron:'치'},{char:'つ',romaji:'tsu',pron:'쯔'},{char:'て',romaji:'te',pron:'테'},{char:'と',romaji:'to',pron:'토'},
+  {char:'な',romaji:'na',pron:'나'},{char:'に',romaji:'ni',pron:'니'},{char:'ぬ',romaji:'nu',pron:'누'},{char:'ね',romaji:'ne',pron:'네'},{char:'の',romaji:'no',pron:'노'},
+  {char:'は',romaji:'ha',pron:'하'},{char:'ひ',romaji:'hi',pron:'히'},{char:'ふ',romaji:'fu',pron:'후'},{char:'へ',romaji:'he',pron:'헤'},{char:'ほ',romaji:'ho',pron:'호'},
+  {char:'ま',romaji:'ma',pron:'마'},{char:'み',romaji:'mi',pron:'미'},{char:'む',romaji:'mu',pron:'무'},{char:'め',romaji:'me',pron:'메'},{char:'も',romaji:'mo',pron:'모'},
+  {char:'や',romaji:'ya',pron:'야'},{char:'ゆ',romaji:'yu',pron:'유'},{char:'よ',romaji:'yo',pron:'요'},
+  {char:'ら',romaji:'ra',pron:'라'},{char:'り',romaji:'ri',pron:'리'},{char:'る',romaji:'ru',pron:'루'},{char:'れ',romaji:'re',pron:'레'},{char:'ろ',romaji:'ro',pron:'로'},
+  {char:'わ',romaji:'wa',pron:'와'},{char:'を',romaji:'wo',pron:'오'},{char:'ん',romaji:'n',pron:'응'},
 ];
 const KATAKANA = [
-  {char:'ア',romaji:'a'},{char:'イ',romaji:'i'},{char:'ウ',romaji:'u'},{char:'エ',romaji:'e'},{char:'オ',romaji:'o'},
-  {char:'カ',romaji:'ka'},{char:'キ',romaji:'ki'},{char:'ク',romaji:'ku'},{char:'ケ',romaji:'ke'},{char:'コ',romaji:'ko'},
-  {char:'サ',romaji:'sa'},{char:'シ',romaji:'shi'},{char:'ス',romaji:'su'},{char:'セ',romaji:'se'},{char:'ソ',romaji:'so'},
-  {char:'タ',romaji:'ta'},{char:'チ',romaji:'chi'},{char:'ツ',romaji:'tsu'},{char:'テ',romaji:'te'},{char:'ト',romaji:'to'},
-  {char:'ナ',romaji:'na'},{char:'ニ',romaji:'ni'},{char:'ヌ',romaji:'nu'},{char:'ネ',romaji:'ne'},{char:'ノ',romaji:'no'},
-  {char:'ハ',romaji:'ha'},{char:'ヒ',romaji:'hi'},{char:'フ',romaji:'fu'},{char:'ヘ',romaji:'he'},{char:'ホ',romaji:'ho'},
-  {char:'マ',romaji:'ma'},{char:'ミ',romaji:'mi'},{char:'ム',romaji:'mu'},{char:'メ',romaji:'me'},{char:'モ',romaji:'mo'},
-  {char:'ヤ',romaji:'ya'},{char:'ユ',romaji:'yu'},{char:'ヨ',romaji:'yo'},
-  {char:'ラ',romaji:'ra'},{char:'リ',romaji:'ri'},{char:'ル',romaji:'ru'},{char:'レ',romaji:'re'},{char:'ロ',romaji:'ro'},
-  {char:'ワ',romaji:'wa'},{char:'ヲ',romaji:'wo'},{char:'ン',romaji:'n'},
+  {char:'ア',romaji:'a',pron:'아'},{char:'イ',romaji:'i',pron:'이'},{char:'ウ',romaji:'u',pron:'우'},{char:'エ',romaji:'e',pron:'에'},{char:'オ',romaji:'o',pron:'오'},
+  {char:'カ',romaji:'ka',pron:'카'},{char:'キ',romaji:'ki',pron:'키'},{char:'ク',romaji:'ku',pron:'쿠'},{char:'ケ',romaji:'ke',pron:'케'},{char:'コ',romaji:'ko',pron:'코'},
+  {char:'サ',romaji:'sa',pron:'사'},{char:'シ',romaji:'shi',pron:'시'},{char:'ス',romaji:'su',pron:'스'},{char:'セ',romaji:'se',pron:'세'},{char:'ソ',romaji:'so',pron:'소'},
+  {char:'タ',romaji:'ta',pron:'타'},{char:'チ',romaji:'chi',pron:'치'},{char:'ツ',romaji:'tsu',pron:'쯔'},{char:'テ',romaji:'te',pron:'테'},{char:'ト',romaji:'to',pron:'토'},
+  {char:'ナ',romaji:'na',pron:'나'},{char:'ニ',romaji:'ni',pron:'니'},{char:'ヌ',romaji:'nu',pron:'누'},{char:'ネ',romaji:'ne',pron:'네'},{char:'ノ',romaji:'no',pron:'노'},
+  {char:'ハ',romaji:'ha',pron:'하'},{char:'ヒ',romaji:'hi',pron:'히'},{char:'フ',romaji:'fu',pron:'후'},{char:'ヘ',romaji:'he',pron:'헤'},{char:'ホ',romaji:'ho',pron:'호'},
+  {char:'マ',romaji:'ma',pron:'마'},{char:'ミ',romaji:'mi',pron:'미'},{char:'ム',romaji:'mu',pron:'무'},{char:'メ',romaji:'me',pron:'메'},{char:'モ',romaji:'mo',pron:'모'},
+  {char:'ヤ',romaji:'ya',pron:'야'},{char:'ユ',romaji:'yu',pron:'유'},{char:'ヨ',romaji:'yo',pron:'요'},
+  {char:'ラ',romaji:'ra',pron:'라'},{char:'リ',romaji:'ri',pron:'리'},{char:'ル',romaji:'ru',pron:'루'},{char:'レ',romaji:'re',pron:'레'},{char:'ロ',romaji:'ro',pron:'로'},
+  {char:'ワ',romaji:'wa',pron:'와'},{char:'ヲ',romaji:'wo',pron:'오'},{char:'ン',romaji:'n',pron:'응'},
 ];
 const VOCAB = [
-  {jp:'ねこ',meaning:'고양이',emoji:'🐱',cat:'동물'},{jp:'いぬ',meaning:'강아지',emoji:'🐕',cat:'동물'},
-  {jp:'うさぎ',meaning:'토끼',emoji:'🐰',cat:'동물'},{jp:'さかな',meaning:'물고기',emoji:'🐟',cat:'동물'},
-  {jp:'とり',meaning:'새',emoji:'🐦',cat:'동물'},{jp:'ぞう',meaning:'코끼리',emoji:'🐘',cat:'동물'},
-  {jp:'くま',meaning:'곰',emoji:'🐻',cat:'동물'},{jp:'パンダ',meaning:'판다',emoji:'🐼',cat:'동물'},
-  {jp:'りんご',meaning:'사과',emoji:'🍎',cat:'음식'},{jp:'みかん',meaning:'귤',emoji:'🍊',cat:'음식'},
-  {jp:'すし',meaning:'초밥',emoji:'🍣',cat:'음식'},{jp:'ラーメン',meaning:'라멘',emoji:'🍜',cat:'음식'},
-  {jp:'おにぎり',meaning:'주먹밥',emoji:'🍙',cat:'음식'},{jp:'パン',meaning:'빵',emoji:'🍞',cat:'음식'},
-  {jp:'アイス',meaning:'아이스크림',emoji:'🍦',cat:'음식'},{jp:'みず',meaning:'물',emoji:'💧',cat:'음식'},
-  {jp:'あか',meaning:'빨강',emoji:'🔴',cat:'색깔'},{jp:'あお',meaning:'파랑',emoji:'🔵',cat:'색깔'},
-  {jp:'きいろ',meaning:'노랑',emoji:'🟡',cat:'색깔'},{jp:'みどり',meaning:'초록',emoji:'🟢',cat:'색깔'},
-  {jp:'しろ',meaning:'하양',emoji:'⚪',cat:'색깔'},{jp:'くろ',meaning:'검정',emoji:'⚫',cat:'색깔'},
-  {jp:'ピンク',meaning:'분홍',emoji:'🩷',cat:'색깔'},{jp:'オレンジ',meaning:'주황',emoji:'🟠',cat:'색깔'},
-  {jp:'いち',meaning:'1 (하나)',emoji:'1️⃣',cat:'숫자'},{jp:'に',meaning:'2 (둘)',emoji:'2️⃣',cat:'숫자'},
-  {jp:'さん',meaning:'3 (셋)',emoji:'3️⃣',cat:'숫자'},{jp:'よん',meaning:'4 (넷)',emoji:'4️⃣',cat:'숫자'},
-  {jp:'ご',meaning:'5 (다섯)',emoji:'5️⃣',cat:'숫자'},{jp:'ろく',meaning:'6 (여섯)',emoji:'6️⃣',cat:'숫자'},
-  {jp:'なな',meaning:'7 (일곱)',emoji:'7️⃣',cat:'숫자'},{jp:'はち',meaning:'8 (여덟)',emoji:'8️⃣',cat:'숫자'},
-  {jp:'きゅう',meaning:'9 (아홉)',emoji:'9️⃣',cat:'숫자'},{jp:'じゅう',meaning:'10 (열)',emoji:'🔟',cat:'숫자'},
-  {jp:'おはよう',meaning:'좋은 아침',emoji:'🌅',cat:'인사'},{jp:'こんにちは',meaning:'안녕하세요',emoji:'☀️',cat:'인사'},
-  {jp:'こんばんは',meaning:'안녕하세요(저녁)',emoji:'🌙',cat:'인사'},{jp:'ありがとう',meaning:'감사합니다',emoji:'🙏',cat:'인사'},
-  {jp:'すみません',meaning:'죄송합니다',emoji:'🙇',cat:'인사'},{jp:'さようなら',meaning:'안녕히가세요',emoji:'👋',cat:'인사'},
-  {jp:'おとうさん',meaning:'아빠',emoji:'👨',cat:'가족'},{jp:'おかあさん',meaning:'엄마',emoji:'👩',cat:'가족'},
-  {jp:'おにいさん',meaning:'오빠/형',emoji:'👦',cat:'가족'},{jp:'おねえさん',meaning:'언니/누나',emoji:'👧',cat:'가족'},
-  {jp:'いもうと',meaning:'여동생',emoji:'👧',cat:'가족'},{jp:'おとうと',meaning:'남동생',emoji:'👦',cat:'가족'},
+  {jp:'ねこ',meaning:'고양이',emoji:'🐱',cat:'동물',pron:'네코'},{jp:'いぬ',meaning:'강아지',emoji:'🐕',cat:'동물',pron:'이누'},
+  {jp:'うさぎ',meaning:'토끼',emoji:'🐰',cat:'동물',pron:'우사기'},{jp:'さかな',meaning:'물고기',emoji:'🐟',cat:'동물',pron:'사카나'},
+  {jp:'とり',meaning:'새',emoji:'🐦',cat:'동물',pron:'토리'},{jp:'ぞう',meaning:'코끼리',emoji:'🐘',cat:'동물',pron:'조우'},
+  {jp:'くま',meaning:'곰',emoji:'🐻',cat:'동물',pron:'쿠마'},{jp:'パンダ',meaning:'판다',emoji:'🐼',cat:'동물',pron:'판다'},
+  {jp:'りんご',meaning:'사과',emoji:'🍎',cat:'음식',pron:'린고'},{jp:'みかん',meaning:'귤',emoji:'🍊',cat:'음식',pron:'미캉'},
+  {jp:'すし',meaning:'초밥',emoji:'🍣',cat:'음식',pron:'스시'},{jp:'ラーメン',meaning:'라멘',emoji:'🍜',cat:'음식',pron:'라멘'},
+  {jp:'おにぎり',meaning:'주먹밥',emoji:'🍙',cat:'음식',pron:'오니기리'},{jp:'パン',meaning:'빵',emoji:'🍞',cat:'음식',pron:'팡'},
+  {jp:'アイス',meaning:'아이스크림',emoji:'🍦',cat:'음식',pron:'아이스'},{jp:'みず',meaning:'물',emoji:'💧',cat:'음식',pron:'미즈'},
+  {jp:'あか',meaning:'빨강',emoji:'🔴',cat:'색깔',pron:'아카'},{jp:'あお',meaning:'파랑',emoji:'🔵',cat:'색깔',pron:'아오'},
+  {jp:'きいろ',meaning:'노랑',emoji:'🟡',cat:'색깔',pron:'키이로'},{jp:'みどり',meaning:'초록',emoji:'🟢',cat:'색깔',pron:'미도리'},
+  {jp:'しろ',meaning:'하양',emoji:'⚪',cat:'색깔',pron:'시로'},{jp:'くろ',meaning:'검정',emoji:'⚫',cat:'색깔',pron:'쿠로'},
+  {jp:'ピンク',meaning:'분홍',emoji:'🩷',cat:'색깔',pron:'핑쿠'},{jp:'オレンジ',meaning:'주황',emoji:'🟠',cat:'색깔',pron:'오렌지'},
+  {jp:'いち',meaning:'1 (하나)',emoji:'1️⃣',cat:'숫자',pron:'이치'},{jp:'に',meaning:'2 (둘)',emoji:'2️⃣',cat:'숫자',pron:'니'},
+  {jp:'さん',meaning:'3 (셋)',emoji:'3️⃣',cat:'숫자',pron:'상'},{jp:'よん',meaning:'4 (넷)',emoji:'4️⃣',cat:'숫자',pron:'용'},
+  {jp:'ご',meaning:'5 (다섯)',emoji:'5️⃣',cat:'숫자',pron:'고'},{jp:'ろく',meaning:'6 (여섯)',emoji:'6️⃣',cat:'숫자',pron:'로쿠'},
+  {jp:'なな',meaning:'7 (일곱)',emoji:'7️⃣',cat:'숫자',pron:'나나'},{jp:'はち',meaning:'8 (여덟)',emoji:'8️⃣',cat:'숫자',pron:'하치'},
+  {jp:'きゅう',meaning:'9 (아홉)',emoji:'9️⃣',cat:'숫자',pron:'큐우'},{jp:'じゅう',meaning:'10 (열)',emoji:'🔟',cat:'숫자',pron:'쥬우'},
+  {jp:'おはよう',meaning:'좋은 아침',emoji:'🌅',cat:'인사',pron:'오하요우'},{jp:'こんにちは',meaning:'안녕하세요',emoji:'☀️',cat:'인사',pron:'콘니치와'},
+  {jp:'こんばんは',meaning:'안녕하세요(저녁)',emoji:'🌙',cat:'인사',pron:'콘방와'},{jp:'ありがとう',meaning:'감사합니다',emoji:'🙏',cat:'인사',pron:'아리가또우'},
+  {jp:'すみません',meaning:'죄송합니다',emoji:'🙇',cat:'인사',pron:'스미마셍'},{jp:'さようなら',meaning:'안녕히가세요',emoji:'👋',cat:'인사',pron:'사요우나라'},
+  {jp:'おとうさん',meaning:'아빠',emoji:'👨',cat:'가족',pron:'오토우상'},{jp:'おかあさん',meaning:'엄마',emoji:'👩',cat:'가족',pron:'오카아상'},
+  {jp:'おにいさん',meaning:'오빠/형',emoji:'👦',cat:'가족',pron:'오니이상'},{jp:'おねえさん',meaning:'언니/누나',emoji:'👧',cat:'가족',pron:'오네에상'},
+  {jp:'いもうと',meaning:'여동생',emoji:'👧',cat:'가족',pron:'이모우토'},{jp:'おとうと',meaning:'남동생',emoji:'👦',cat:'가족',pron:'오토우토'},
 ];
 const STAMPS = [
   {id:'first_login',name:'첫 발걸음',emoji:'👣',desc:'처음 시작했어요!'},
@@ -567,7 +567,10 @@ function KanaDetail({ item, selected, data, learned, setSelected, markLearned })
           </div>
           <div className="flex items-center justify-center gap-3 mb-3">
             <button onClick={() => speak(item.char)} className="text-6xl jp text-primary-700">{item.char}</button>
-            <div className="text-xl text-primary-400 font-bold">{item.romaji}</div>
+            <div>
+              <div className="text-xl text-primary-400 font-bold">{item.romaji}</div>
+              <div className="text-lg text-sakura-500 font-bold">{item.pron}</div>
+            </div>
           </div>
           {/* Stroke order guide */}
           {strokes.length > 0 && (
@@ -621,7 +624,8 @@ function KanaDetail({ item, selected, data, learned, setSelected, markLearned })
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white p-6 flex flex-col items-center justify-center">
       <div className="pop-in bg-white rounded-3xl shadow-xl p-10 flex flex-col items-center max-w-sm w-full">
         <button onClick={() => speak(item.char)} className="text-9xl jp text-primary-700 mb-4 hover:scale-110 transition-transform">{item.char}</button>
-        <div className="text-3xl text-primary-400 font-bold mb-2">{item.romaji}</div>
+        <div className="text-3xl text-primary-400 font-bold mb-1">{item.romaji}</div>
+        <div className="text-2xl text-sakura-500 font-bold mb-2">{item.pron}</div>
         <button onClick={() => speak(item.char)} className="bg-primary-100 text-primary-600 rounded-full px-6 py-2 font-bold mb-3 hover:bg-primary-200">
           🔊 발음 듣기
         </button>
@@ -730,6 +734,7 @@ function KanaScreen({ type, data, progress, updateProgress, navigate }) {
                   }`}>
                   <span className={`text-2xl jp ${isLearned ? 'text-primary-700' : 'text-gray-700'}`}>{item.char}</span>
                   {showRomaji && <span className="text-xs text-gray-400">{item.romaji}</span>}
+                  <span className="text-xs text-primary-400 font-bold">{item.pron}</span>
                   {isLearned && <span className="text-xs">✓</span>}
                 </button>
               );
@@ -805,7 +810,8 @@ function VocabScreen({ progress, updateProgress, navigate, category }) {
         <button onClick={() => { setFlipped(!flipped); speak(word.jp); }}
           className="pop-in bg-white rounded-3xl shadow-xl w-72 h-96 flex flex-col items-center justify-center kana-card">
           <span className="text-7xl mb-4">{word.emoji}</span>
-          <span className="text-4xl jp font-bold text-gray-800 mb-2">{word.jp}</span>
+          <span className="text-4xl jp font-bold text-gray-800 mb-1">{word.jp}</span>
+          <span className="text-lg text-sakura-400 font-bold mb-2">{word.pron}</span>
           {flipped ? (
             <span className="text-xl text-sakura-500 font-bold slide-up">{word.meaning}</span>
           ) : (
@@ -971,7 +977,8 @@ function QuizScreen({ progress, updateProgress, navigate }) {
         <div className="bg-accent-500 h-2 rounded-full transition-all" style={{width:`${((current+1)/questions.length)*100}%`}} />
       </div>
       <div className={`flex-1 flex flex-col items-center justify-center ${anim}`}>
-        <div className="text-6xl jp font-bold text-gray-800 mb-8">{q.q}</div>
+        <div className="text-6xl jp font-bold text-gray-800 mb-2">{q.q}</div>
+        <button onClick={() => speak(q.q.replace(/[^\u3000-\u9FFF\u30A0-\u30FF\u3040-\u309F]/g,''))} className="text-sm text-accent-400 font-bold mb-6">🔊 발음 듣기</button>
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
           {q.options.map((opt, i) => {
             let cls = 'bg-white border-2 border-gray-200 text-gray-800';
@@ -1095,7 +1102,8 @@ function BattleScreen({ progress, updateProgress, navigate }) {
         <span className="text-sm font-bold text-sakura-500">👧 {scores[1]}</span>
       </div>
       <div className={`flex-1 flex flex-col items-center justify-center ${anim}`}>
-        <div className="text-6xl jp font-bold text-gray-800 mb-8">{q.q}</div>
+        <div className="text-6xl jp font-bold text-gray-800 mb-2">{q.q}</div>
+        <button onClick={() => speak(q.q.replace(/[^\u3000-\u9FFF\u30A0-\u30FF\u3040-\u309F]/g,''))} className="text-sm text-sakura-400 font-bold mb-6">🔊 발음 듣기</button>
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
           {q.options.map((opt, i) => {
             let cls = `bg-white border-2 ${turn === 0 ? 'border-primary-200' : 'border-sakura-200'} text-gray-800`;
