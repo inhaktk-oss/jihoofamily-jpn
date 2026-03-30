@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>지후네 일본어 🌸</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="지후네일본어">
+<meta name="theme-color" content="#8B5CF6">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
+* { font-family: 'Noto Sans KR', 'Noto Sans JP', sans-serif; -webkit-tap-highlight-color: transparent; }
+.jp { font-family: 'Noto Sans JP', sans-serif; }
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes confetti { 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(-200px) rotate(720deg); opacity:0; } }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.pop-in { animation: popIn 0.3s ease-out; }
+.bounce { animation: bounce 0.5s ease; }
+.shake { animation: shake 0.3s ease; }
+.float { animation: float 3s ease-in-out infinite; }
+.slide-up { animation: slideUp 0.4s ease-out; }
+.kana-card { transition: all 0.2s ease; }
+.kana-card:active { transform: scale(0.95); }
+.stamp-earned { animation: popIn 0.5s ease-out; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: #C4B5FD; border-radius: 3px; }
+</style>
+<script>
+tailwind.config = {
+  theme: { extend: { colors: {
+    primary: { 50:'#F5F3FF',100:'#EDE9FE',200:'#DDD6FE',300:'#C4B5FD',400:'#A78BFA',500:'#8B5CF6',600:'#7C3AED',700:'#6D28D9' },
+    accent: { 50:'#FFF7ED',100:'#FFEDD5',200:'#FED7AA',300:'#FDBA74',400:'#FB923C',500:'#F97316' },
+    sakura: { 50:'#FDF2F8',100:'#FCE7F3',200:'#FBCFE8',300:'#F9A8D4',400:'#F472B6',500:'#EC4899' },
+  }}}
+}
+</script>
+</head>
+<body class="bg-primary-50 min-h-screen">
+<div id="root"></div>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef, useMemo } = React;
+
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const HIRAGANA = [
+  {char:'あ',romaji:'a'},{char:'い',romaji:'i'},{char:'う',romaji:'u'},{char:'え',romaji:'e'},{char:'お',romaji:'o'},
+  {char:'か',romaji:'ka'},{char:'き',romaji:'ki'},{char:'く',romaji:'ku'},{char:'け',romaji:'ke'},{char:'こ',romaji:'ko'},
+  {char:'さ',romaji:'sa'},{char:'し',romaji:'shi'},{char:'す',romaji:'su'},{char:'せ',romaji:'se'},{char:'そ',romaji:'so'},
+  {char:'た',romaji:'ta'},{char:'ち',romaji:'chi'},{char:'つ',romaji:'tsu'},{char:'て',romaji:'te'},{char:'と',romaji:'to'},
+  {char:'な',romaji:'na'},{char:'に',romaji:'ni'},{char:'ぬ',romaji:'nu'},{char:'ね',romaji:'ne'},{char:'の',romaji:'no'},
+  {char:'は',romaji:'ha'},{char:'ひ',romaji:'hi'},{char:'ふ',romaji:'fu'},{char:'へ',romaji:'he'},{char:'ほ',romaji:'ho'},
+  {char:'ま',romaji:'ma'},{char:'み',romaji:'mi'},{char:'む',romaji:'mu'},{char:'め',romaji:'me'},{char:'も',romaji:'mo'},
+  {char:'や',romaji:'ya'},{char:'ゆ',romaji:'yu'},{char:'よ',romaji:'yo'},
+  {char:'ら',romaji:'ra'},{char:'り',romaji:'ri'},{char:'る',romaji:'ru'},{char:'れ',romaji:'re'},{char:'ろ',romaji:'ro'},
+  {char:'わ',romaji:'wa'},{char:'を',romaji:'wo'},{char:'ん',romaji:'n'},
+];
+const KATAKANA = [
+  {char:'ア',romaji:'a'},{char:'イ',romaji:'i'},{char:'ウ',romaji:'u'},{char:'エ',romaji:'e'},{char:'オ',romaji:'o'},
+  {char:'カ',romaji:'ka'},{char:'キ',romaji:'ki'},{char:'ク',romaji:'ku'},{char:'ケ',romaji:'ke'},{char:'コ',romaji:'ko'},
+  {char:'サ',romaji:'sa'},{char:'シ',romaji:'shi'},{char:'ス',romaji:'su'},{char:'セ',romaji:'se'},{char:'ソ',romaji:'so'},
+  {char:'タ',romaji:'ta'},{char:'チ',romaji:'chi'},{char:'ツ',romaji:'tsu'},{char:'テ',romaji:'te'},{char:'ト',romaji:'to'},
+  {char:'ナ',romaji:'na'},{char:'ニ',romaji:'ni'},{char:'ヌ',romaji:'nu'},{char:'ネ',romaji:'ne'},{char:'ノ',romaji:'no'},
+  {char:'ハ',romaji:'ha'},{char:'ヒ',romaji:'hi'},{char:'フ',romaji:'fu'},{char:'ヘ',romaji:'he'},{char:'ホ',romaji:'ho'},
+  {char:'マ',romaji:'ma'},{char:'ミ',romaji:'mi'},{char:'ム',romaji:'mu'},{char:'メ',romaji:'me'},{char:'モ',romaji:'mo'},
+  {char:'ヤ',romaji:'ya'},{char:'ユ',romaji:'yu'},{char:'ヨ',romaji:'yo'},
+  {char:'ラ',romaji:'ra'},{char:'リ',romaji:'ri'},{char:'ル',romaji:'ru'},{char:'レ',romaji:'re'},{char:'ロ',romaji:'ro'},
+  {char:'ワ',romaji:'wa'},{char:'ヲ',romaji:'wo'},{char:'ン',romaji:'n'},
+];
+const VOCAB = [
+  {jp:'ねこ',meaning:'고양이',emoji:'🐱',cat:'동물'},{jp:'いぬ',meaning:'강아지',emoji:'🐕',cat:'동물'},
+  {jp:'うさぎ',meaning:'토끼',emoji:'🐰',cat:'동물'},{jp:'さかな',meaning:'물고기',emoji:'🐟',cat:'동물'},
+  {jp:'とり',meaning:'새',emoji:'🐦',cat:'동물'},{jp:'ぞう',meaning:'코끼리',emoji:'🐘',cat:'동물'},
+  {jp:'くま',meaning:'곰',emoji:'🐻',cat:'동물'},{jp:'パンダ',meaning:'판다',emoji:'🐼',cat:'동물'},
+  {jp:'りんご',meaning:'사과',emoji:'🍎',cat:'음식'},{jp:'みかん',meaning:'귤',emoji:'🍊',cat:'음식'},
+  {jp:'すし',meaning:'초밥',emoji:'🍣',cat:'음식'},{jp:'ラーメン',meaning:'라멘',emoji:'🍜',cat:'음식'},
+  {jp:'おにぎり',meaning:'주먹밥',emoji:'🍙',cat:'음식'},{jp:'パン',meaning:'빵',emoji:'🍞',cat:'음식'},
+  {jp:'アイス',meaning:'아이스크림',emoji:'🍦',cat:'음식'},{jp:'みず',meaning:'물',emoji:'💧',cat:'음식'},
+  {jp:'あか',meaning:'빨강',emoji:'🔴',cat:'색깔'},{jp:'あお',meaning:'파랑',emoji:'🔵',cat:'색깔'},
+  {jp:'きいろ',meaning:'노랑',emoji:'🟡',cat:'색깔'},{jp:'みどり',meaning:'초록',emoji:'🟢',cat:'색깔'},
+  {jp:'しろ',meaning:'하양',emoji:'⚪',cat:'색깔'},{jp:'くろ',meaning:'검정',emoji:'⚫',cat:'색깔'},
+  {jp:'ピンク',meaning:'분홍',emoji:'🩷',cat:'색깔'},{jp:'オレンジ',meaning:'주황',emoji:'🟠',cat:'색깔'},
+  {jp:'いち',meaning:'1 (하나)',emoji:'1️⃣',cat:'숫자'},{jp:'に',meaning:'2 (둘)',emoji:'2️⃣',cat:'숫자'},
+  {jp:'さん',meaning:'3 (셋)',emoji:'3️⃣',cat:'숫자'},{jp:'よん',meaning:'4 (넷)',emoji:'4️⃣',cat:'숫자'},
+  {jp:'ご',meaning:'5 (다섯)',emoji:'5️⃣',cat:'숫자'},{jp:'ろく',meaning:'6 (여섯)',emoji:'6️⃣',cat:'숫자'},
+  {jp:'なな',meaning:'7 (일곱)',emoji:'7️⃣',cat:'숫자'},{jp:'はち',meaning:'8 (여덟)',emoji:'8️⃣',cat:'숫자'},
+  {jp:'きゅう',meaning:'9 (아홉)',emoji:'9️⃣',cat:'숫자'},{jp:'じゅう',meaning:'10 (열)',emoji:'🔟',cat:'숫자'},
+  {jp:'おはよう',meaning:'좋은 아침',emoji:'🌅',cat:'인사'},{jp:'こんにちは',meaning:'안녕하세요',emoji:'☀️',cat:'인사'},
+  {jp:'こんばんは',meaning:'안녕하세요(저녁)',emoji:'🌙',cat:'인사'},{jp:'ありがとう',meaning:'감사합니다',emoji:'🙏',cat:'인사'},
+  {jp:'すみません',meaning:'죄송합니다',emoji:'🙇',cat:'인사'},{jp:'さようなら',meaning:'안녕히가세요',emoji:'👋',cat:'인사'},
+  {jp:'おとうさん',meaning:'아빠',emoji:'👨',cat:'가족'},{jp:'おかあさん',meaning:'엄마',emoji:'👩',cat:'가족'},
+  {jp:'おにいさん',meaning:'오빠/형',emoji:'👦',cat:'가족'},{jp:'おねえさん',meaning:'언니/누나',emoji:'👧',cat:'가족'},
+  {jp:'いもうと',meaning:'여동생',emoji:'👧',cat:'가족'},{jp:'おとうと',meaning:'남동생',emoji:'👦',cat:'가족'},
+];
+const STAMPS = [
+  {id:'first_login',name:'첫 발걸음',emoji:'👣',desc:'처음 시작했어요!'},
+  {id:'hira_10',name:'히라가나 탐험가',emoji:'🗾',desc:'히라가나 10개 학습'},
+  {id:'hira_all',name:'히라가나 마스터',emoji:'🏆',desc:'히라가나 전부 학습'},
+  {id:'kata_10',name:'가타카나 탐험가',emoji:'🎌',desc:'가타카나 10개 학습'},
+  {id:'kata_all',name:'가타카나 마스터',emoji:'👑',desc:'가타카나 전부 학습'},
+  {id:'vocab_10',name:'단어 수집가',emoji:'📚',desc:'단어 10개 학습'},
+  {id:'vocab_all',name:'단어 박사',emoji:'🎓',desc:'단어 전부 학습'},
+  {id:'quiz_5',name:'퀴즈 도전자',emoji:'⭐',desc:'퀴즈 5회 완료'},
+  {id:'quiz_perfect',name:'완벽한 답변',emoji:'💎',desc:'퀴즈 만점 달성'},
+  {id:'battle_1',name:'첫 대결',emoji:'⚔️',desc:'대결 모드 1회 완료'},
+  {id:'streak_3',name:'3일 연속',emoji:'🔥',desc:'3일 연속 학습'},
+  {id:'streak_7',name:'일주일 연속',emoji:'🌟',desc:'7일 연속 학습'},
+];
+const VOCAB_CATS = ['동물','음식','색깔','숫자','인사','가족'];
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+const speak = (text) => {
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ja-JP'; u.rate = 0.75; u.pitch = 1.1;
+  window.speechSynthesis.speak(u);
+};
+const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+const today = () => new Date().toISOString().slice(0, 10);
+const loadData = (key, def) => { try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; } };
+const saveData = (key, val) => localStorage.setItem(key, JSON.stringify(val));
+
+// ═══════════════════════════════════════════
+// APP
+// ═══════════════════════════════════════════
+function App() {
+  const [user, setUser] = useState(loadData('currentUser', null));
+  const [screen, setScreen] = useState('home');
+  const [screenData, setScreenData] = useState(null);
+  const [progress, setProgress] = useState(loadData(`progress_${user}`, {
+    hiraLearned:[], kataLearned:[], vocabLearned:[], stamps:['first_login'],
+    quizCount:0, battleCount:0, bestQuizScore:0, loginDays:[], streak:0,
+  }));
+
+  useEffect(() => {
+    if (user) {
+      const p = loadData(`progress_${user}`, {
+        hiraLearned:[], kataLearned:[], vocabLearned:[], stamps:[],
+        quizCount:0, battleCount:0, bestQuizScore:0, loginDays:[], streak:0,
+      });
+      if (!p.loginDays.includes(today())) {
+        p.loginDays.push(today());
+        // Calculate streak
+        const days = p.loginDays.sort();
+        let streak = 1;
+        for (let i = days.length - 1; i > 0; i--) {
+          const d1 = new Date(days[i]), d2 = new Date(days[i-1]);
+          if ((d1 - d2) / 86400000 === 1) streak++; else break;
+        }
+        p.streak = streak;
+        if (streak >= 3 && !p.stamps.includes('streak_3')) p.stamps.push('streak_3');
+        if (streak >= 7 && !p.stamps.includes('streak_7')) p.stamps.push('streak_7');
+      }
+      if (!p.stamps.includes('first_login')) p.stamps.push('first_login');
+      setProgress(p);
+      saveData(`progress_${user}`, p);
+    }
+  }, [user]);
+
+  const updateProgress = useCallback((updater) => {
+    setProgress(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : { ...prev, ...updater };
+      saveData(`progress_${user}`, next);
+      return next;
+    });
+  }, [user]);
+
+  const navigate = (s, data = null) => { setScreen(s); setScreenData(data); };
+
+  const selectUser = (u) => { setUser(u); saveData('currentUser', u); navigate('menu'); };
+  const logout = () => { setUser(null); saveData('currentUser', null); navigate('home'); };
+
+  if (!user || screen === 'home') return <HomeScreen onSelect={selectUser} />;
+
+  const screens = {
+    menu: <MenuScreen user={user} progress={progress} navigate={navigate} onLogout={logout} />,
+    hiragana: <KanaScreen type="hiragana" data={HIRAGANA} progress={progress} updateProgress={updateProgress} navigate={navigate} />,
+    katakana: <KanaScreen type="katakana" data={KATAKANA} progress={progress} updateProgress={updateProgress} navigate={navigate} />,
+    vocab: <VocabScreen progress={progress} updateProgress={updateProgress} navigate={navigate} category={screenData} />,
+    vocabCat: <VocabCatScreen navigate={navigate} progress={progress} />,
+    mission: <MissionScreen user={user} progress={progress} updateProgress={updateProgress} navigate={navigate} />,
+    quiz: <QuizScreen progress={progress} updateProgress={updateProgress} navigate={navigate} />,
+    battle: <BattleScreen progress={progress} updateProgress={updateProgress} navigate={navigate} />,
+    stamps: <StampScreen progress={progress} navigate={navigate} />,
+    stats: <StatsScreen user={user} progress={progress} navigate={navigate} />,
+  };
+
+  return screens[screen] || <MenuScreen user={user} progress={progress} navigate={navigate} onLogout={logout} />;
+}
+
+// ═══════════════════════════════════════════
+// HOME SCREEN
+// ═══════════════════════════════════════════
+function HomeScreen({ onSelect }) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-primary-100 via-sakura-50 to-accent-50">
+      <div className="float text-8xl mb-4">🌸</div>
+      <h1 class="text-4xl font-bold text-primary-700 mb-2">지후네 일본어</h1>
+      <p class="text-xl text-primary-500 mb-10 jp">にほんご いっしょに!</p>
+      <p class="text-lg text-gray-500 mb-6">누가 공부할까요?</p>
+      <div class="flex gap-5">
+        <button onClick={() => onSelect('지후파파')}
+          className="kana-card bg-white rounded-3xl shadow-lg p-6 flex flex-col items-center gap-3 hover:shadow-xl border-2 border-transparent hover:border-primary-300">
+          <span className="text-5xl">👨</span>
+          <span className="text-lg font-bold text-primary-700">지후파파</span>
+        </button>
+        <button onClick={() => onSelect('지후')}
+          className="kana-card bg-white rounded-3xl shadow-lg p-6 flex flex-col items-center gap-3 hover:shadow-xl border-2 border-transparent hover:border-sakura-300">
+          <span className="text-5xl">👧</span>
+          <span className="text-lg font-bold text-sakura-500">지후</span>
+        </button>
+        <button onClick={() => onSelect('지후맘')}
+          className="kana-card bg-white rounded-3xl shadow-lg p-6 flex flex-col items-center gap-3 hover:shadow-xl border-2 border-transparent hover:border-accent-300">
+          <span className="text-5xl">👩</span>
+          <span className="text-lg font-bold text-accent-500">지후맘</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// MENU SCREEN
+// ═══════════════════════════════════════════
+function MenuScreen({ user, progress, navigate, onLogout }) {
+  const hPct = Math.round((progress.hiraLearned.length / HIRAGANA.length) * 100);
+  const kPct = Math.round((progress.kataLearned.length / KATAKANA.length) * 100);
+  const items = [
+    { id:'hiragana', icon:'あ', label:'히라가나', sub:`${progress.hiraLearned.length}/${HIRAGANA.length}`, pct:hPct, color:'primary' },
+    { id:'katakana', icon:'ア', label:'가타카나', sub:`${progress.kataLearned.length}/${KATAKANA.length}`, pct:kPct, color:'accent' },
+    { id:'vocabCat', icon:'📚', label:'단어 학습', sub:`${progress.vocabLearned.length}/${VOCAB.length}`, pct:Math.round((progress.vocabLearned.length/VOCAB.length)*100), color:'sakura' },
+    { id:'mission', icon:'🎯', label:'오늘의 미션', sub:'매일 도전!', color:'primary' },
+    { id:'quiz', icon:'❓', label:'퀴즈', sub:`최고 ${progress.bestQuizScore}점`, color:'accent' },
+    { id:'battle', icon:'⚔️', label:'대결 모드', sub:'가족 대결', color:'sakura' },
+    { id:'stamps', icon:'🏅', label:'내 스탬프', sub:`${progress.stamps.length}/${STAMPS.length}`, color:'primary' },
+    { id:'stats', icon:'📊', label:'진도 현황', sub:`${progress.streak}일 연속`, color:'accent' },
+  ];
+  const uc = user === '지후파파' ? 'primary' : user === '지후' ? 'sakura' : 'accent';
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white p-4 pb-8">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">{user === '지후파파' ? '👨' : user === '지후' ? '👧' : '👩'}</span>
+          <div>
+            <div className="font-bold text-lg text-gray-800">{user}</div>
+            <div className="text-sm text-gray-400">🔥 {progress.streak}일 연속</div>
+          </div>
+        </div>
+        <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-600">사용자 변경</button>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        {items.map((item, i) => (
+          <button key={item.id} onClick={() => navigate(item.id)}
+            className="slide-up bg-white rounded-2xl shadow-md p-5 flex flex-col items-center gap-2 hover:shadow-lg border border-gray-100 kana-card"
+            style={{ animationDelay: `${i * 0.05}s` }}>
+            <span className="text-4xl jp">{item.icon}</span>
+            <span className="font-bold text-gray-800">{item.label}</span>
+            <span className="text-xs text-gray-400">{item.sub}</span>
+            {item.pct !== undefined && (
+              <div className="w-full bg-gray-100 rounded-full h-2 mt-1">
+                <div className={`bg-${item.color}-400 h-2 rounded-full transition-all`} style={{width:`${item.pct}%`}} />
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// BACK BUTTON
+// ═══════════════════════════════════════════
+function BackBtn({ navigate, to = 'menu' }) {
+  return (
+    <button onClick={() => navigate(to)} className="flex items-center gap-1 text-primary-500 font-bold mb-4 hover:text-primary-700">
+      <span>←</span> <span>돌아가기</span>
+    </button>
+  );
+}
+
+// ═══════════════════════════════════════════
+// STROKE ORDER DATA — {x,y} = start position (0~1 normalized), dir = arrow hint
+// ═══════════════════════════════════════════
+const STROKE_ORDER = {
+  // Hiragana — あ행
+  'あ':[{x:.15,y:.35,dir:'→'},{x:.55,y:.12,dir:'↓'},{x:.3,y:.55,dir:'↻'}],
+  'い':[{x:.25,y:.2,dir:'↘'},{x:.65,y:.2,dir:'↘'}],
+  'う':[{x:.45,y:.15,dir:'→'},{x:.3,y:.35,dir:'↘'}],
+  'え':[{x:.3,y:.3,dir:'→'},{x:.25,y:.45,dir:'↙'}],
+  'お':[{x:.15,y:.35,dir:'→'},{x:.55,y:.12,dir:'↓'},{x:.3,y:.55,dir:'↻'}],
+  // か행
+  'か':[{x:.15,y:.3,dir:'→'},{x:.5,y:.12,dir:'↓'},{x:.6,y:.4,dir:'↙'}],
+  'き':[{x:.2,y:.25,dir:'→'},{x:.15,y:.5,dir:'→'},{x:.5,y:.35,dir:'↓'}],
+  'く':[{x:.6,y:.15,dir:'↙'}],
+  'け':[{x:.2,y:.15,dir:'↓'},{x:.4,y:.25,dir:'→'},{x:.65,y:.35,dir:'↙'}],
+  'こ':[{x:.2,y:.3,dir:'→'},{x:.2,y:.65,dir:'→'}],
+  // さ행
+  'さ':[{x:.2,y:.25,dir:'→'},{x:.45,y:.15,dir:'↓'},{x:.5,y:.6,dir:'↙'}],
+  'し':[{x:.4,y:.15,dir:'↓'}],
+  'す':[{x:.2,y:.3,dir:'→'},{x:.5,y:.2,dir:'↓'}],
+  'せ':[{x:.25,y:.15,dir:'↓'},{x:.15,y:.45,dir:'→'},{x:.5,y:.35,dir:'↓'}],
+  'そ':[{x:.25,y:.2,dir:'→'}],
+  // た행
+  'た':[{x:.15,y:.25,dir:'→'},{x:.15,y:.5,dir:'→'},{x:.5,y:.15,dir:'↓'},{x:.6,y:.55,dir:'↙'}],
+  'ち':[{x:.2,y:.3,dir:'→'},{x:.45,y:.2,dir:'↓'}],
+  'つ':[{x:.2,y:.35,dir:'→'}],
+  'て':[{x:.2,y:.3,dir:'→'},{x:.5,y:.4,dir:'↙'}],
+  'と':[{x:.35,y:.15,dir:'↓'},{x:.35,y:.55,dir:'→'}],
+  // な행
+  'な':[{x:.15,y:.25,dir:'→'},{x:.5,y:.12,dir:'↓'},{x:.6,y:.38,dir:'↗'},{x:.35,y:.55,dir:'↻'}],
+  'に':[{x:.2,y:.15,dir:'↓'},{x:.45,y:.3,dir:'→'},{x:.75,y:.2,dir:'↓'}],
+  'ぬ':[{x:.15,y:.35,dir:'→'},{x:.5,y:.2,dir:'↓'}],
+  'ね':[{x:.2,y:.15,dir:'↓'},{x:.4,y:.3,dir:'→'}],
+  'の':[{x:.55,y:.15,dir:'↙'}],
+  // は행
+  'は':[{x:.2,y:.15,dir:'↓'},{x:.45,y:.3,dir:'→'},{x:.55,y:.2,dir:'↓'}],
+  'ひ':[{x:.3,y:.15,dir:'↓'}],
+  'ふ':[{x:.45,y:.12,dir:'→'},{x:.25,y:.35,dir:'↙'},{x:.6,y:.35,dir:'↘'},{x:.35,y:.6,dir:'↻'}],
+  'へ':[{x:.15,y:.5,dir:'↗'}],
+  'ほ':[{x:.2,y:.15,dir:'↓'},{x:.4,y:.3,dir:'→'},{x:.55,y:.15,dir:'↓'},{x:.4,y:.55,dir:'↻'}],
+  // ま행
+  'ま':[{x:.2,y:.25,dir:'→'},{x:.15,y:.5,dir:'→'},{x:.5,y:.45,dir:'↓'}],
+  'み':[{x:.25,y:.2,dir:'→'},{x:.3,y:.5,dir:'↻'}],
+  'む':[{x:.2,y:.35,dir:'→'},{x:.5,y:.2,dir:'↓'},{x:.65,y:.65,dir:'→'}],
+  'め':[{x:.15,y:.35,dir:'→'},{x:.5,y:.2,dir:'↓'}],
+  'も':[{x:.2,y:.25,dir:'→'},{x:.2,y:.5,dir:'→'},{x:.45,y:.35,dir:'↓'}],
+  // や행
+  'や':[{x:.15,y:.25,dir:'→'},{x:.55,y:.15,dir:'↓'},{x:.6,y:.55,dir:'↙'}],
+  'ゆ':[{x:.2,y:.2,dir:'↓'},{x:.55,y:.2,dir:'↓'}],
+  'よ':[{x:.25,y:.3,dir:'→'},{x:.5,y:.2,dir:'↓'}],
+  // ら행
+  'ら':[{x:.3,y:.25,dir:'→'},{x:.45,y:.4,dir:'↓'}],
+  'り':[{x:.3,y:.2,dir:'↓'},{x:.6,y:.2,dir:'↓'}],
+  'る':[{x:.2,y:.3,dir:'→'},{x:.5,y:.45,dir:'↓'}],
+  'れ':[{x:.2,y:.15,dir:'↓'},{x:.4,y:.3,dir:'→'}],
+  'ろ':[{x:.2,y:.3,dir:'→'},{x:.5,y:.45,dir:'↓'}],
+  // わ행
+  'わ':[{x:.2,y:.3,dir:'→'},{x:.5,y:.2,dir:'↓'}],
+  'を':[{x:.15,y:.2,dir:'→'},{x:.2,y:.45,dir:'→'},{x:.5,y:.35,dir:'↓'}],
+  'ん':[{x:.3,y:.6,dir:'↗'}],
+  // Katakana — ア행
+  'ア':[{x:.15,y:.3,dir:'→'},{x:.55,y:.2,dir:'↓'}],
+  'イ':[{x:.55,y:.15,dir:'↙'},{x:.45,y:.3,dir:'↓'}],
+  'ウ':[{x:.45,y:.12,dir:'→'},{x:.2,y:.35,dir:'→'},{x:.5,y:.35,dir:'↓'}],
+  'エ':[{x:.2,y:.25,dir:'→'},{x:.45,y:.25,dir:'↓'},{x:.2,y:.7,dir:'→'}],
+  'オ':[{x:.2,y:.3,dir:'→'},{x:.5,y:.12,dir:'↓'},{x:.55,y:.5,dir:'↙'}],
+  // カ행
+  'カ':[{x:.15,y:.3,dir:'→'},{x:.5,y:.12,dir:'↓'},{x:.6,y:.4,dir:'↙'}],
+  'キ':[{x:.2,y:.25,dir:'→'},{x:.15,y:.5,dir:'→'},{x:.5,y:.15,dir:'↓'}],
+  'ク':[{x:.55,y:.15,dir:'↙'},{x:.3,y:.3,dir:'↓'}],
+  'ケ':[{x:.2,y:.15,dir:'↓'},{x:.2,y:.45,dir:'→'},{x:.55,y:.3,dir:'↙'}],
+  'コ':[{x:.2,y:.2,dir:'→'},{x:.65,y:.2,dir:'↓'},{x:.2,y:.75,dir:'→'}],
+  // サ행
+  'サ':[{x:.3,y:.12,dir:'↓'},{x:.6,y:.12,dir:'↓'},{x:.15,y:.55,dir:'→'}],
+  'シ':[{x:.2,y:.35,dir:'→'},{x:.25,y:.55,dir:'→'},{x:.3,y:.7,dir:'↗'}],
+  'ス':[{x:.2,y:.25,dir:'→'},{x:.5,y:.35,dir:'↙'}],
+  'セ':[{x:.25,y:.15,dir:'↓'},{x:.25,y:.45,dir:'→'}],
+  'ソ':[{x:.3,y:.2,dir:'↙'},{x:.6,y:.2,dir:'↓'}],
+  // タ행
+  'タ':[{x:.15,y:.2,dir:'→'},{x:.5,y:.2,dir:'↓'},{x:.55,y:.55,dir:'→'}],
+  'チ':[{x:.2,y:.2,dir:'→'},{x:.15,y:.45,dir:'→'},{x:.45,y:.45,dir:'↓'}],
+  'ツ':[{x:.2,y:.25,dir:'↙'},{x:.45,y:.2,dir:'↙'},{x:.55,y:.45,dir:'↗'}],
+  'テ':[{x:.2,y:.2,dir:'→'},{x:.15,y:.45,dir:'→'},{x:.45,y:.45,dir:'↓'}],
+  'ト':[{x:.4,y:.15,dir:'↓'},{x:.4,y:.5,dir:'→'}],
+  // ナ행
+  'ナ':[{x:.2,y:.35,dir:'→'},{x:.55,y:.15,dir:'↓'}],
+  'ニ':[{x:.25,y:.3,dir:'→'},{x:.2,y:.65,dir:'→'}],
+  'ヌ':[{x:.2,y:.25,dir:'→'},{x:.6,y:.3,dir:'↙'}],
+  'ネ':[{x:.45,y:.1,dir:'→'},{x:.15,y:.3,dir:'→'},{x:.45,y:.3,dir:'↓'},{x:.55,y:.5,dir:'↙'}],
+  'ノ':[{x:.6,y:.15,dir:'↙'}],
+  // ハ행
+  'ハ':[{x:.35,y:.3,dir:'↙'},{x:.55,y:.3,dir:'↘'}],
+  'ヒ':[{x:.3,y:.15,dir:'↓'},{x:.3,y:.6,dir:'→'}],
+  'フ':[{x:.2,y:.25,dir:'→'}],
+  'ヘ':[{x:.15,y:.5,dir:'↗'}],
+  'ホ':[{x:.2,y:.2,dir:'→'},{x:.45,y:.2,dir:'↓'},{x:.3,y:.45,dir:'↙'},{x:.55,y:.45,dir:'↘'}],
+  // マ행
+  'マ':[{x:.15,y:.3,dir:'→'},{x:.55,y:.35,dir:'↓'}],
+  'ミ':[{x:.25,y:.2,dir:'→'},{x:.2,y:.45,dir:'→'},{x:.3,y:.7,dir:'→'}],
+  'ム':[{x:.45,y:.15,dir:'↙'},{x:.2,y:.6,dir:'→'},{x:.65,y:.5,dir:'→'}],
+  'メ':[{x:.55,y:.15,dir:'↙'},{x:.25,y:.5,dir:'↗'}],
+  'モ':[{x:.2,y:.2,dir:'→'},{x:.15,y:.45,dir:'→'},{x:.45,y:.45,dir:'↓'}],
+  // ヤ행
+  'ヤ':[{x:.15,y:.2,dir:'→'},{x:.55,y:.15,dir:'↓'},{x:.6,y:.5,dir:'→'}],
+  'ユ':[{x:.25,y:.15,dir:'↓'},{x:.25,y:.55,dir:'→'}],
+  'ヨ':[{x:.25,y:.2,dir:'→'},{x:.25,y:.45,dir:'→'},{x:.65,y:.2,dir:'↓'}],
+  // ラ행
+  'ラ':[{x:.25,y:.25,dir:'→'},{x:.45,y:.4,dir:'↓'}],
+  'リ':[{x:.3,y:.2,dir:'↓'},{x:.6,y:.2,dir:'↓'}],
+  'ル':[{x:.25,y:.15,dir:'↓'},{x:.55,y:.15,dir:'↓'}],
+  'レ':[{x:.3,y:.15,dir:'↓'}],
+  'ロ':[{x:.2,y:.2,dir:'→'},{x:.65,y:.2,dir:'↓'},{x:.2,y:.75,dir:'→'}],
+  // ワ행
+  'ワ':[{x:.2,y:.2,dir:'→'},{x:.55,y:.25,dir:'↓'}],
+  'ヲ':[{x:.2,y:.25,dir:'→'},{x:.2,y:.5,dir:'→'}],
+  'ン':[{x:.3,y:.45,dir:'→'},{x:.55,y:.2,dir:'↗'}],
+};
+
+// ═══════════════════════════════════════════
+// WRITING CANVAS COMPONENT
+// ═══════════════════════════════════════════
+function WritingCanvas({ char, onComplete, resetKey }) {
+  const canvasRef = useRef(null);
+  const [drawing, setDrawing] = useState(false);
+  const [hasStrokes, setHasStrokes] = useState(false);
+  const strokes = STROKE_ORDER[char] || [];
+
+  const initCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    const w = rect.width, h = rect.height;
+    // Draw guide character
+    ctx.fillStyle = '#EDE9FE';
+    ctx.font = `bold ${w * 0.7}px "Noto Sans JP", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(char, w / 2, h / 2);
+    // Draw border
+    ctx.strokeStyle = '#DDD6FE';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(2, 2, w - 4, h - 4);
+    // Cross guides
+    ctx.beginPath();
+    ctx.moveTo(w / 2, 4); ctx.lineTo(w / 2, h - 4);
+    ctx.moveTo(4, h / 2); ctx.lineTo(w - 4, h / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Draw stroke order numbers on canvas
+    const colors = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6','#EC4899'];
+    strokes.forEach((s, i) => {
+      const cx = s.x * w, cy = s.y * h;
+      const r = 10;
+      const col = colors[i % colors.length];
+      // Circle background
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.fill();
+      // Number
+      ctx.fillStyle = '#FFF';
+      ctx.font = `bold 12px "Noto Sans KR", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(i + 1), cx, cy);
+      // Arrow
+      ctx.fillStyle = col;
+      ctx.font = `14px sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(s.dir, cx + r + 2, cy);
+    });
+    setHasStrokes(false);
+  }, [char, strokes]);
+
+  useEffect(() => { initCanvas(); }, [char, resetKey, initCanvas]);
+
+  const getPos = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+  };
+
+  const startDraw = (e) => {
+    e.preventDefault();
+    setDrawing(true);
+    setHasStrokes(true);
+    const ctx = canvasRef.current.getContext('2d');
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    ctx.strokeStyle = '#6D28D9';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  };
+
+  const draw = (e) => {
+    e.preventDefault();
+    if (!drawing) return;
+    const ctx = canvasRef.current.getContext('2d');
+    const pos = getPos(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
+
+  const endDraw = (e) => {
+    e.preventDefault();
+    setDrawing(false);
+  };
+
+  const handleComplete = () => {
+    onComplete();
+    // Canvas will be reset via resetKey change
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <canvas ref={canvasRef}
+        className="rounded-2xl bg-white border-2 border-primary-200 touch-none cursor-crosshair"
+        style={{ width: 160, height: 160 }}
+        onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
+        onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw} />
+      <div className="flex gap-3 mt-2">
+        <button onClick={initCanvas} className="text-xs text-gray-400 hover:text-gray-600 px-3 py-1 bg-gray-50 rounded-full">🗑 지우기</button>
+        {hasStrokes && <button onClick={handleComplete} className="text-xs text-white font-bold px-3 py-1 bg-primary-500 rounded-full">✓ 완료</button>}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// KANA DETAIL (Flashcard + Writing Practice)
+// ═══════════════════════════════════════════
+function KanaDetail({ item, selected, data, learned, setSelected, markLearned }) {
+  const [mode, setMode] = useState('card'); // 'card' or 'write'
+  const [writeCount, setWriteCount] = useState(0);
+  const [resetKey, setResetKey] = useState(0);
+  const WRITE_GOAL = 5;
+  const strokes = STROKE_ORDER[item.char] || [];
+
+  useEffect(() => {
+    setMode('card');
+    setWriteCount(0);
+    setResetKey(0);
+  }, [selected]);
+
+  const handleWriteComplete = () => {
+    const next = writeCount + 1;
+    setWriteCount(next);
+    setResetKey(k => k + 1); // triggers canvas reset
+    if (next >= WRITE_GOAL) {
+      speak('すごい');
+    }
+  };
+
+  if (mode === 'write') {
+    const done = writeCount >= WRITE_GOAL;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white p-4 flex flex-col items-center">
+        <div className="w-full max-w-sm">
+          <div className="flex items-center justify-between mb-3">
+            <button onClick={() => setMode('card')} className="text-primary-500 font-bold text-sm">← 돌아가기</button>
+            <div className="text-sm font-bold text-gray-400">{writeCount} / {WRITE_GOAL}</div>
+          </div>
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <button onClick={() => speak(item.char)} className="text-6xl jp text-primary-700">{item.char}</button>
+            <div className="text-xl text-primary-400 font-bold">{item.romaji}</div>
+          </div>
+          {/* Stroke order guide */}
+          {strokes.length > 0 && (
+            <div className="bg-white rounded-xl p-3 mb-3 shadow-sm">
+              <div className="text-xs font-bold text-gray-500 mb-1">✏️ {strokes.length}획 — 캔버스의 번호를 따라가세요!</div>
+              <div className="flex flex-wrap gap-1">
+                {strokes.map((s, i) => {
+                  const colors = ['bg-red-100 text-red-600','bg-orange-100 text-orange-600','bg-yellow-100 text-yellow-700','bg-green-100 text-green-600','bg-blue-100 text-blue-600','bg-purple-100 text-purple-600','bg-pink-100 text-pink-600'];
+                  const nums = '❶❷❸❹❺❻❼';
+                  return <span key={i} className={`text-xs rounded-full px-2 py-0.5 font-bold ${colors[i % colors.length]}`}>{nums[i]}{s.dir}</span>;
+                })}
+              </div>
+            </div>
+          )}
+          <div className="bg-primary-100 rounded-full h-3 mb-4">
+            <div className="bg-primary-500 h-3 rounded-full transition-all" style={{width:`${(writeCount/WRITE_GOAL)*100}%`}} />
+          </div>
+          <p className="text-center text-sm text-gray-500 mb-4">
+            {done ? '🎉 5번 모두 완료!' : `따라 써보세요! (${writeCount + 1}번째)`}
+          </p>
+          {!done ? (
+            <div className="flex justify-center">
+              <WritingCanvas char={item.char} onComplete={handleWriteComplete} resetKey={resetKey} />
+            </div>
+          ) : (
+            <div className="text-center pop-in">
+              <div className="text-6xl mb-3">🌟</div>
+              <p className="text-lg font-bold text-primary-600 mb-4">잘 썼어요!</p>
+              <div className="flex gap-3 justify-center">
+                <button onClick={() => setWriteCount(0)}
+                  className="bg-gray-100 rounded-xl px-5 py-3 font-bold text-gray-600">다시 쓰기</button>
+                <button onClick={() => { markLearned(item.char); setSelected(selected < data.length - 1 ? selected + 1 : 0); }}
+                  className="bg-primary-500 text-white rounded-xl px-5 py-3 font-bold">다음 글자 →</button>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-center gap-1 mt-5">
+            {Array.from({length: WRITE_GOAL}).map((_, i) => (
+              <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                i < writeCount ? 'bg-primary-400 text-white' : 'bg-gray-100 text-gray-300'}`}>
+                {i < writeCount ? '✓' : i + 1}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white p-6 flex flex-col items-center justify-center">
+      <div className="pop-in bg-white rounded-3xl shadow-xl p-10 flex flex-col items-center max-w-sm w-full">
+        <button onClick={() => speak(item.char)} className="text-9xl jp text-primary-700 mb-4 hover:scale-110 transition-transform">{item.char}</button>
+        <div className="text-3xl text-primary-400 font-bold mb-2">{item.romaji}</div>
+        <button onClick={() => speak(item.char)} className="bg-primary-100 text-primary-600 rounded-full px-6 py-2 font-bold mb-3 hover:bg-primary-200">
+          🔊 발음 듣기
+        </button>
+        {strokes.length > 0 && (
+          <div className="bg-primary-50 rounded-xl p-3 mb-3 w-full">
+            <div className="text-xs font-bold text-gray-500 mb-1 text-center">{strokes.length}획</div>
+            <div className="flex flex-wrap gap-1 justify-center">
+              {strokes.map((s, i) => {
+                const colors = ['bg-red-100 text-red-600','bg-orange-100 text-orange-600','bg-yellow-100 text-yellow-700','bg-green-100 text-green-600','bg-blue-100 text-blue-600','bg-purple-100 text-purple-600','bg-pink-100 text-pink-600'];
+                const nums = '❶❷❸❹❺❻❼';
+                return <span key={i} className={`text-xs rounded-full px-2 py-0.5 font-bold shadow-sm ${colors[i % colors.length]}`}>{nums[i]}{s.dir}</span>;
+              })}
+            </div>
+          </div>
+        )}
+        <button onClick={() => setMode('write')}
+          className="bg-accent-100 text-accent-600 rounded-full px-6 py-2 font-bold mb-6 hover:bg-accent-200">
+          ✏️ 따라쓰기 (5회)
+        </button>
+        <div className="flex gap-3 w-full">
+          <button onClick={() => { setSelected(selected > 0 ? selected - 1 : data.length - 1); }}
+            className="flex-1 bg-gray-100 rounded-xl py-3 font-bold text-gray-600 hover:bg-gray-200">← 이전</button>
+          <button onClick={() => { markLearned(item.char); setSelected(selected < data.length - 1 ? selected + 1 : 0); }}
+            className="flex-1 bg-primary-500 text-white rounded-xl py-3 font-bold hover:bg-primary-600">
+            {learned.includes(item.char) ? '다음 →' : '배웠어요! ✓'}
+          </button>
+        </div>
+      </div>
+      <button onClick={() => setSelected(null)} className="mt-6 text-primary-400 font-bold">목록으로</button>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// KANA LEARNING SCREEN
+// ═══════════════════════════════════════════
+function KanaScreen({ type, data, progress, updateProgress, navigate }) {
+  const [selected, setSelected] = useState(null);
+  const [showRomaji, setShowRomaji] = useState(true);
+  const isHira = type === 'hiragana';
+  const learned = isHira ? progress.hiraLearned : progress.kataLearned;
+  const title = isHira ? '히라가나' : '가타카나';
+  const rows = [
+    { label: isHira?'あ행':'ア행', start:0, count:5 },
+    { label: isHira?'か행':'カ행', start:5, count:5 },
+    { label: isHira?'さ행':'サ행', start:10, count:5 },
+    { label: isHira?'た행':'タ행', start:15, count:5 },
+    { label: isHira?'な행':'ナ행', start:20, count:5 },
+    { label: isHira?'は행':'ハ행', start:25, count:5 },
+    { label: isHira?'ま행':'マ행', start:30, count:5 },
+    { label: isHira?'や행':'ヤ행', start:35, count:3 },
+    { label: isHira?'ら행':'ラ행', start:38, count:5 },
+    { label: isHira?'わ행':'ワ행', start:43, count:3 },
+  ];
+
+  const markLearned = (char) => {
+    const key = isHira ? 'hiraLearned' : 'kataLearned';
+    if (!learned.includes(char)) {
+      const newLearned = [...learned, char];
+      const updates = { [key]: newLearned };
+      // Check stamps
+      if (newLearned.length >= 10) {
+        const stampId = isHira ? 'hira_10' : 'kata_10';
+        if (!progress.stamps.includes(stampId)) updates.stamps = [...progress.stamps, stampId];
+      }
+      if (newLearned.length >= data.length) {
+        const stampId = isHira ? 'hira_all' : 'kata_all';
+        const stamps = updates.stamps || progress.stamps;
+        if (!stamps.includes(stampId)) updates.stamps = [...stamps, stampId];
+      }
+      updateProgress(prev => ({ ...prev, ...updates }));
+    }
+  };
+
+  if (selected !== null) {
+    const item = data[selected];
+    return <KanaDetail item={item} selected={selected} data={data} learned={learned}
+      setSelected={setSelected} markLearned={markLearned} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white p-4">
+      <BackBtn navigate={navigate} />
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold text-primary-700">{title}</h2>
+        <label className="flex items-center gap-2 text-sm text-gray-500">
+          <span>로마자</span>
+          <input type="checkbox" checked={showRomaji} onChange={e => setShowRomaji(e.target.checked)} className="accent-primary-500" />
+        </label>
+      </div>
+      <div className="bg-primary-100 rounded-full h-3 mb-6">
+        <div className="bg-primary-500 h-3 rounded-full transition-all" style={{width:`${(learned.length/data.length)*100}%`}} />
+      </div>
+      <p className="text-sm text-gray-400 mb-4 text-center">{learned.length} / {data.length} 학습 완료</p>
+      {rows.map(row => (
+        <div key={row.label} className="mb-4">
+          <div className="text-xs text-gray-400 mb-1 font-bold">{row.label}</div>
+          <div className="flex gap-2 flex-wrap">
+            {data.slice(row.start, row.start + row.count).map((item, i) => {
+              const idx = row.start + i;
+              const isLearned = learned.includes(item.char);
+              return (
+                <button key={item.char} onClick={() => { speak(item.char); setSelected(idx); }}
+                  className={`kana-card w-16 h-20 rounded-xl flex flex-col items-center justify-center shadow-sm border-2 ${
+                    isLearned ? 'bg-primary-100 border-primary-300' : 'bg-white border-gray-100'
+                  }`}>
+                  <span className={`text-2xl jp ${isLearned ? 'text-primary-700' : 'text-gray-700'}`}>{item.char}</span>
+                  {showRomaji && <span className="text-xs text-gray-400">{item.romaji}</span>}
+                  {isLearned && <span className="text-xs">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// VOCAB CATEGORY SCREEN
+// ═══════════════════════════════════════════
+function VocabCatScreen({ navigate, progress }) {
+  const catEmoji = { '동물':'🐾','음식':'🍽️','색깔':'🎨','숫자':'🔢','인사':'👋','가족':'👨‍👩‍👧‍👦' };
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-sakura-50 to-white p-4">
+      <BackBtn navigate={navigate} />
+      <h2 className="text-2xl font-bold text-sakura-600 mb-6">📚 단어 학습</h2>
+      <div className="grid grid-cols-2 gap-4">
+        {VOCAB_CATS.map(cat => {
+          const words = VOCAB.filter(v => v.cat === cat);
+          const learned = words.filter(v => progress.vocabLearned.includes(v.jp)).length;
+          return (
+            <button key={cat} onClick={() => navigate('vocab', cat)}
+              className="bg-white rounded-2xl shadow-md p-5 flex flex-col items-center gap-2 kana-card hover:shadow-lg">
+              <span className="text-4xl">{catEmoji[cat]}</span>
+              <span className="font-bold text-gray-800">{cat}</span>
+              <span className="text-xs text-gray-400">{learned}/{words.length}</span>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="bg-sakura-400 h-2 rounded-full transition-all" style={{width:`${(learned/words.length)*100}%`}} />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// VOCAB FLASHCARD SCREEN
+// ═══════════════════════════════════════════
+function VocabScreen({ progress, updateProgress, navigate, category }) {
+  const words = VOCAB.filter(v => v.cat === category);
+  const [idx, setIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const word = words[idx];
+
+  const markLearned = () => {
+    if (!progress.vocabLearned.includes(word.jp)) {
+      const newVocab = [...progress.vocabLearned, word.jp];
+      const updates = { vocabLearned: newVocab };
+      if (newVocab.length >= 10 && !progress.stamps.includes('vocab_10'))
+        updates.stamps = [...progress.stamps, 'vocab_10'];
+      if (newVocab.length >= VOCAB.length) {
+        const stamps = updates.stamps || progress.stamps;
+        if (!stamps.includes('vocab_all')) updates.stamps = [...stamps, 'vocab_all'];
+      }
+      updateProgress(prev => ({ ...prev, ...updates }));
+    }
+    setFlipped(false);
+    setIdx(idx < words.length - 1 ? idx + 1 : 0);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-sakura-50 to-white p-4 flex flex-col">
+      <BackBtn navigate={navigate} to="vocabCat" />
+      <h2 className="text-xl font-bold text-sakura-600 mb-2">{category} 단어</h2>
+      <p className="text-sm text-gray-400 mb-6">{idx + 1} / {words.length}</p>
+      <div className="flex-1 flex items-center justify-center">
+        <button onClick={() => { setFlipped(!flipped); speak(word.jp); }}
+          className="pop-in bg-white rounded-3xl shadow-xl w-72 h-96 flex flex-col items-center justify-center kana-card">
+          <span className="text-7xl mb-4">{word.emoji}</span>
+          <span className="text-4xl jp font-bold text-gray-800 mb-2">{word.jp}</span>
+          {flipped ? (
+            <span className="text-xl text-sakura-500 font-bold slide-up">{word.meaning}</span>
+          ) : (
+            <span className="text-sm text-gray-300">탭해서 뜻 보기</span>
+          )}
+        </button>
+      </div>
+      <div className="flex gap-3 mt-6">
+        <button onClick={() => { setFlipped(false); setIdx(idx > 0 ? idx - 1 : words.length - 1); }}
+          className="flex-1 bg-gray-100 rounded-xl py-4 font-bold text-gray-600">← 이전</button>
+        <button onClick={() => speak(word.jp)}
+          className="bg-sakura-100 rounded-xl px-6 py-4 text-sakura-600 font-bold">🔊</button>
+        <button onClick={markLearned}
+          className="flex-1 bg-sakura-500 text-white rounded-xl py-4 font-bold">
+          {progress.vocabLearned.includes(word.jp) ? '다음 →' : '배웠어요! ✓'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// MISSION SCREEN
+// ═══════════════════════════════════════════
+function MissionScreen({ user, progress, updateProgress, navigate }) {
+  const seed = today().replace(/-/g, '');
+  const rng = (n) => ((parseInt(seed) * 9301 + 49297) % 233280) % n;
+  const missions = [
+    { id:'m1', label:'히라가나 5개 학습하기', icon:'あ', check: () => progress.hiraLearned.length >= 5, action: () => navigate('hiragana') },
+    { id:'m2', label:'가타카나 5개 학습하기', icon:'ア', check: () => progress.kataLearned.length >= 5, action: () => navigate('katakana') },
+    { id:'m3', label:'단어 3개 학습하기', icon:'📚', check: () => progress.vocabLearned.length >= 3, action: () => navigate('vocabCat') },
+    { id:'m4', label:'퀴즈 1회 도전하기', icon:'❓', check: () => progress.quizCount >= 1, action: () => navigate('quiz') },
+    { id:'m5', label:'발음 듣기 5회', icon:'🔊', check: () => true, action: () => navigate('hiragana') },
+  ];
+  const done = missions.filter(m => m.check()).length;
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-accent-50 to-white p-4">
+      <BackBtn navigate={navigate} />
+      <h2 className="text-2xl font-bold text-accent-500 mb-2">🎯 오늘의 미션</h2>
+      <p className="text-sm text-gray-400 mb-6">{done}/{missions.length} 완료</p>
+      <div className="bg-accent-100 rounded-full h-3 mb-6">
+        <div className="bg-accent-500 h-3 rounded-full transition-all" style={{width:`${(done/missions.length)*100}%`}} />
+      </div>
+      <div className="space-y-3">
+        {missions.map(m => {
+          const isDone = m.check();
+          return (
+            <button key={m.id} onClick={m.action}
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl shadow-sm kana-card ${isDone ? 'bg-green-50 border-2 border-green-200' : 'bg-white border border-gray-100'}`}>
+              <span className="text-3xl">{m.icon}</span>
+              <div className="flex-1 text-left">
+                <div className={`font-bold ${isDone ? 'text-green-600 line-through' : 'text-gray-800'}`}>{m.label}</div>
+              </div>
+              {isDone ? <span className="text-2xl">✅</span> : <span className="text-gray-300">→</span>}
+            </button>
+          );
+        })}
+      </div>
+      {done === missions.length && (
+        <div className="mt-8 text-center pop-in">
+          <div className="text-6xl mb-2">🎉</div>
+          <div className="text-xl font-bold text-accent-500">미션 전부 완료!</div>
+          <div className="text-gray-400">대단해요! 내일도 도전하세요!</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// QUIZ SCREEN
+// ═══════════════════════════════════════════
+function QuizScreen({ progress, updateProgress, navigate }) {
+  const [phase, setPhase] = useState('setup'); // setup, playing, result
+  const [quizType, setQuizType] = useState('hiragana');
+  const [questions, setQuestions] = useState([]);
+  const [current, setCurrent] = useState(0);
+  const [score, setScore] = useState(0);
+  const [answered, setAnswered] = useState(null);
+  const [anim, setAnim] = useState('');
+
+  const startQuiz = (type) => {
+    setQuizType(type);
+    let pool;
+    if (type === 'hiragana') pool = HIRAGANA.map(h => ({ q: h.char, a: h.romaji, type: 'kana' }));
+    else if (type === 'katakana') pool = KATAKANA.map(k => ({ q: k.char, a: k.romaji, type: 'kana' }));
+    else pool = VOCAB.map(v => ({ q: `${v.emoji} ${v.jp}`, a: v.meaning, type: 'vocab' }));
+
+    const qs = shuffle(pool).slice(0, 10).map(q => {
+      const wrongPool = pool.filter(p => p.a !== q.a);
+      const wrongs = shuffle(wrongPool).slice(0, 3).map(w => w.a);
+      return { ...q, options: shuffle([q.a, ...wrongs]) };
+    });
+    setQuestions(qs);
+    setCurrent(0); setScore(0); setAnswered(null);
+    setPhase('playing');
+  };
+
+  const answer = (opt) => {
+    if (answered !== null) return;
+    const correct = opt === questions[current].a;
+    setAnswered(opt);
+    if (correct) { setScore(s => s + 1); setAnim('bounce'); speak('すごい'); }
+    else { setAnim('shake'); }
+    setTimeout(() => {
+      setAnim('');
+      if (current < questions.length - 1) { setCurrent(c => c + 1); setAnswered(null); }
+      else {
+        const finalScore = correct ? score + 1 : score;
+        const updates = { quizCount: progress.quizCount + 1, bestQuizScore: Math.max(progress.bestQuizScore, finalScore * 10) };
+        if (progress.quizCount + 1 >= 5 && !progress.stamps.includes('quiz_5'))
+          updates.stamps = [...progress.stamps, 'quiz_5'];
+        if (finalScore === 10) {
+          const stamps = updates.stamps || progress.stamps;
+          if (!stamps.includes('quiz_perfect')) updates.stamps = [...stamps, 'quiz_perfect'];
+        }
+        updateProgress(prev => ({ ...prev, ...updates }));
+        setPhase('result');
+      }
+    }, 1200);
+  };
+
+  if (phase === 'setup') return (
+    <div className="min-h-screen bg-gradient-to-b from-accent-50 to-white p-4">
+      <BackBtn navigate={navigate} />
+      <h2 className="text-2xl font-bold text-accent-500 mb-6">❓ 퀴즈</h2>
+      <p className="text-gray-500 mb-8 text-center">어떤 퀴즈를 풀까요? (10문제)</p>
+      <div className="space-y-4">
+        {[['hiragana','あ','히라가나 퀴즈'],['katakana','ア','가타카나 퀴즈'],['vocab','📚','단어 퀴즈']].map(([id,icon,label]) => (
+          <button key={id} onClick={() => startQuiz(id)}
+            className="w-full bg-white rounded-2xl shadow-md p-6 flex items-center gap-4 kana-card hover:shadow-lg">
+            <span className="text-4xl jp">{icon}</span>
+            <span className="text-xl font-bold text-gray-800">{label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (phase === 'result') {
+    const pct = Math.round((score / questions.length) * 100);
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-accent-50 to-white p-6 flex flex-col items-center justify-center">
+        <div className="pop-in text-8xl mb-4">{pct >= 80 ? '🎉' : pct >= 50 ? '👏' : '💪'}</div>
+        <h2 className="text-3xl font-bold text-accent-500 mb-2">{score} / {questions.length}</h2>
+        <p className="text-gray-500 mb-8">{pct >= 80 ? '대단해요!' : pct >= 50 ? '잘했어요!' : '다시 도전해봐요!'}</p>
+        <div className="flex gap-4">
+          <button onClick={() => setPhase('setup')} className="bg-accent-500 text-white rounded-xl px-8 py-3 font-bold">다시 풀기</button>
+          <button onClick={() => navigate('menu')} className="bg-gray-200 rounded-xl px-8 py-3 font-bold text-gray-600">메뉴로</button>
+        </div>
+      </div>
+    );
+  }
+
+  const q = questions[current];
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-accent-50 to-white p-4 flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm font-bold text-gray-400">{current + 1} / {questions.length}</span>
+        <span className="text-sm font-bold text-accent-500">⭐ {score}점</span>
+      </div>
+      <div className="bg-accent-100 rounded-full h-2 mb-8">
+        <div className="bg-accent-500 h-2 rounded-full transition-all" style={{width:`${((current+1)/questions.length)*100}%`}} />
+      </div>
+      <div className={`flex-1 flex flex-col items-center justify-center ${anim}`}>
+        <div className="text-6xl jp font-bold text-gray-800 mb-8">{q.q}</div>
+        <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+          {q.options.map((opt, i) => {
+            let cls = 'bg-white border-2 border-gray-200 text-gray-800';
+            if (answered !== null) {
+              if (opt === q.a) cls = 'bg-green-100 border-2 border-green-400 text-green-700';
+              else if (opt === answered) cls = 'bg-red-100 border-2 border-red-400 text-red-700';
+            }
+            return (
+              <button key={i} onClick={() => answer(opt)}
+                className={`${cls} rounded-2xl p-4 font-bold text-lg kana-card shadow-sm`}>
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// BATTLE SCREEN
+// ═══════════════════════════════════════════
+function BattleScreen({ progress, updateProgress, navigate }) {
+  const [phase, setPhase] = useState('setup');
+  const [questions, setQuestions] = useState([]);
+  const [current, setCurrent] = useState(0);
+  const [turn, setTurn] = useState(0); // 0=아빠, 1=딸
+  const [scores, setScores] = useState([0, 0]);
+  const [answered, setAnswered] = useState(null);
+  const [anim, setAnim] = useState('');
+  const players = ['👨 지후파파', '👧 지후'];
+
+  const startBattle = () => {
+    const pool = [...HIRAGANA.map(h => ({ q: h.char, a: h.romaji })), ...VOCAB.slice(0, 20).map(v => ({ q: `${v.emoji} ${v.jp}`, a: v.meaning }))];
+    const qs = shuffle(pool).slice(0, 10).map(q => {
+      const wrongs = shuffle(pool.filter(p => p.a !== q.a)).slice(0, 3).map(w => w.a);
+      return { ...q, options: shuffle([q.a, ...wrongs]) };
+    });
+    setQuestions(qs); setCurrent(0); setTurn(0); setScores([0, 0]); setAnswered(null);
+    setPhase('playing');
+  };
+
+  const answer = (opt) => {
+    if (answered !== null) return;
+    const correct = opt === questions[current].a;
+    setAnswered(opt);
+    if (correct) {
+      const ns = [...scores]; ns[turn]++; setScores(ns);
+      setAnim('bounce');
+    } else setAnim('shake');
+    setTimeout(() => {
+      setAnim('');
+      setAnswered(null);
+      if (current < questions.length - 1) {
+        setCurrent(c => c + 1);
+        setTurn(t => 1 - t);
+      } else {
+        const updates = { battleCount: progress.battleCount + 1 };
+        if (!progress.stamps.includes('battle_1')) updates.stamps = [...progress.stamps, 'battle_1'];
+        updateProgress(prev => ({ ...prev, ...updates }));
+        setPhase('result');
+      }
+    }, 1200);
+  };
+
+  if (phase === 'setup') return (
+    <div className="min-h-screen bg-gradient-to-b from-sakura-50 to-white p-4 flex flex-col items-center justify-center">
+      <BackBtn navigate={navigate} />
+      <div className="text-8xl mb-6">⚔️</div>
+      <h2 className="text-3xl font-bold text-sakura-600 mb-4">대결 모드</h2>
+      <p className="text-gray-500 mb-2">번갈아가며 문제를 풀어요!</p>
+      <p className="text-gray-400 text-sm mb-8">히라가나 + 단어 섞어서 10문제</p>
+      <div className="flex gap-8 mb-8">
+        <div className="text-center"><div className="text-5xl mb-2">👨</div><div className="font-bold">지후파파</div></div>
+        <div className="text-4xl font-bold text-sakura-400 self-center">VS</div>
+        <div className="text-center"><div className="text-5xl mb-2">👧</div><div className="font-bold">지후</div></div>
+      </div>
+      <button onClick={startBattle} className="bg-sakura-500 text-white rounded-2xl px-10 py-4 text-xl font-bold shadow-lg hover:bg-sakura-600 kana-card">
+        시작! 🚀
+      </button>
+    </div>
+  );
+
+  if (phase === 'result') {
+    const winner = scores[0] > scores[1] ? '👨 아빠' : scores[1] > scores[0] ? '👧 딸' : '무승부';
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sakura-50 to-white p-6 flex flex-col items-center justify-center">
+        <div className="pop-in text-8xl mb-4">🏆</div>
+        <h2 className="text-2xl font-bold text-sakura-600 mb-6">{winner === '무승부' ? '무승부! 🤝' : `${winner} 승리!`}</h2>
+        <div className="flex gap-12 mb-8">
+          <div className="text-center">
+            <div className="text-5xl mb-2">👨</div>
+            <div className="text-3xl font-bold text-primary-600">{scores[0]}점</div>
+          </div>
+          <div className="text-center">
+            <div className="text-5xl mb-2">👧</div>
+            <div className="text-3xl font-bold text-sakura-500">{scores[1]}점</div>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <button onClick={startBattle} className="bg-sakura-500 text-white rounded-xl px-8 py-3 font-bold">한판 더!</button>
+          <button onClick={() => navigate('menu')} className="bg-gray-200 rounded-xl px-8 py-3 font-bold text-gray-600">메뉴로</button>
+        </div>
+      </div>
+    );
+  }
+
+  const q = questions[current];
+  return (
+    <div className={`min-h-screen p-4 flex flex-col ${turn === 0 ? 'bg-gradient-to-b from-primary-50 to-white' : 'bg-gradient-to-b from-sakura-50 to-white'}`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{turn === 0 ? '👨' : '👧'}</span>
+          <span className={`font-bold text-lg ${turn === 0 ? 'text-primary-600' : 'text-sakura-500'}`}>{players[turn]}의 차례!</span>
+        </div>
+        <span className="text-sm font-bold text-gray-400">{current + 1} / {questions.length}</span>
+      </div>
+      <div className="flex justify-center gap-8 mb-4">
+        <span className="text-sm font-bold text-primary-500">👨 {scores[0]}</span>
+        <span className="text-sm font-bold text-sakura-500">👧 {scores[1]}</span>
+      </div>
+      <div className={`flex-1 flex flex-col items-center justify-center ${anim}`}>
+        <div className="text-6xl jp font-bold text-gray-800 mb-8">{q.q}</div>
+        <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+          {q.options.map((opt, i) => {
+            let cls = `bg-white border-2 ${turn === 0 ? 'border-primary-200' : 'border-sakura-200'} text-gray-800`;
+            if (answered !== null) {
+              if (opt === q.a) cls = 'bg-green-100 border-2 border-green-400 text-green-700';
+              else if (opt === answered) cls = 'bg-red-100 border-2 border-red-400 text-red-700';
+            }
+            return (
+              <button key={i} onClick={() => answer(opt)}
+                className={`${cls} rounded-2xl p-4 font-bold text-lg kana-card shadow-sm`}>{opt}</button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// STAMP SCREEN
+// ═══════════════════════════════════════════
+function StampScreen({ progress, navigate }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white p-4">
+      <BackBtn navigate={navigate} />
+      <h2 className="text-2xl font-bold text-primary-700 mb-2">🏅 내 스탬프</h2>
+      <p className="text-gray-400 mb-6">{progress.stamps.length} / {STAMPS.length} 획득</p>
+      <div className="grid grid-cols-3 gap-3">
+        {STAMPS.map(s => {
+          const earned = progress.stamps.includes(s.id);
+          return (
+            <div key={s.id} className={`rounded-2xl p-4 flex flex-col items-center text-center ${
+              earned ? 'bg-white shadow-md stamp-earned' : 'bg-gray-100 opacity-40'}`}>
+              <span className="text-4xl mb-2">{s.emoji}</span>
+              <span className="text-xs font-bold text-gray-700">{s.name}</span>
+              <span className="text-xs text-gray-400 mt-1">{s.desc}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// STATS SCREEN
+// ═══════════════════════════════════════════
+function StatsScreen({ user, progress, navigate }) {
+  const hPct = Math.round((progress.hiraLearned.length / HIRAGANA.length) * 100);
+  const kPct = Math.round((progress.kataLearned.length / KATAKANA.length) * 100);
+  const vPct = Math.round((progress.vocabLearned.length / VOCAB.length) * 100);
+  const bars = [
+    { label: '히라가나', pct: hPct, color: 'bg-primary-400', count: `${progress.hiraLearned.length}/${HIRAGANA.length}` },
+    { label: '가타카나', pct: kPct, color: 'bg-accent-400', count: `${progress.kataLearned.length}/${KATAKANA.length}` },
+    { label: '단어', pct: vPct, color: 'bg-sakura-400', count: `${progress.vocabLearned.length}/${VOCAB.length}` },
+  ];
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-accent-50 to-white p-4">
+      <BackBtn navigate={navigate} />
+      <h2 className="text-2xl font-bold text-accent-500 mb-6">📊 {user}의 진도 현황</h2>
+      <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
+        <div className="grid grid-cols-3 text-center mb-6">
+          <div><div className="text-3xl font-bold text-primary-600">{progress.streak}</div><div className="text-xs text-gray-400">연속 학습일</div></div>
+          <div><div className="text-3xl font-bold text-accent-500">{progress.quizCount}</div><div className="text-xs text-gray-400">퀴즈 횟수</div></div>
+          <div><div className="text-3xl font-bold text-sakura-500">{progress.stamps.length}</div><div className="text-xs text-gray-400">스탬프</div></div>
+        </div>
+        {bars.map(b => (
+          <div key={b.label} className="mb-4">
+            <div className="flex justify-between text-sm mb-1">
+              <span className="font-bold text-gray-600">{b.label}</span>
+              <span className="text-gray-400">{b.count} ({b.pct}%)</span>
+            </div>
+            <div className="bg-gray-100 rounded-full h-4">
+              <div className={`${b.color} h-4 rounded-full transition-all`} style={{width:`${b.pct}%`}} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-white rounded-2xl shadow-md p-6">
+        <h3 className="font-bold text-gray-700 mb-3">학습 기록</h3>
+        <div className="flex flex-wrap gap-1">
+          {progress.loginDays.slice(-30).map(d => (
+            <div key={d} className="w-6 h-6 rounded bg-primary-300 flex items-center justify-center" title={d}>
+              <span className="text-xs text-white font-bold">{parseInt(d.slice(-2))}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-gray-400 mt-2">최근 30일 학습일</p>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
