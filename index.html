@@ -896,9 +896,9 @@ function QuizScreen({ progress, updateProgress, navigate }) {
   const startQuiz = (type) => {
     setQuizType(type);
     let pool;
-    if (type === 'hiragana') pool = HIRAGANA.map(h => ({ q: h.char, a: h.romaji, type: 'kana' }));
-    else if (type === 'katakana') pool = KATAKANA.map(k => ({ q: k.char, a: k.romaji, type: 'kana' }));
-    else pool = VOCAB.map(v => ({ q: `${v.emoji} ${v.jp}`, a: v.meaning, type: 'vocab' }));
+    if (type === 'hiragana') pool = HIRAGANA.map(h => ({ q: h.char, a: h.romaji, pron: h.pron, type: 'kana' }));
+    else if (type === 'katakana') pool = KATAKANA.map(k => ({ q: k.char, a: k.romaji, pron: k.pron, type: 'kana' }));
+    else pool = VOCAB.map(v => ({ q: `${v.emoji} ${v.jp}`, a: v.meaning, pron: v.pron, type: 'vocab' }));
 
     const qs = shuffle(pool).slice(0, 10).map(q => {
       const wrongPool = pool.filter(p => p.a !== q.a);
@@ -977,8 +977,9 @@ function QuizScreen({ progress, updateProgress, navigate }) {
         <div className="bg-accent-500 h-2 rounded-full transition-all" style={{width:`${((current+1)/questions.length)*100}%`}} />
       </div>
       <div className={`flex-1 flex flex-col items-center justify-center ${anim}`}>
-        <div className="text-6xl jp font-bold text-gray-800 mb-2">{q.q}</div>
-        <button onClick={() => speak(q.q.replace(/[^\u3000-\u9FFF\u30A0-\u30FF\u3040-\u309F]/g,''))} className="text-sm text-accent-400 font-bold mb-6">🔊 발음 듣기</button>
+        <div className="text-6xl jp font-bold text-gray-800 mb-1">{q.q}</div>
+        {q.pron && <div className="text-lg text-accent-400 font-bold mb-1">{q.pron}</div>}
+        <button onClick={() => speak(q.type === 'vocab' ? q.q.replace(/[^\u3000-\u9FFF\u30A0-\u30FF\u3040-\u309F]/g,'') : q.q)} className="text-sm text-accent-400 font-bold mb-6">🔊 발음 듣기</button>
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
           {q.options.map((opt, i) => {
             let cls = 'bg-white border-2 border-gray-200 text-gray-800';
@@ -1013,7 +1014,7 @@ function BattleScreen({ progress, updateProgress, navigate }) {
   const players = ['👨 지후파파', '👧 지후'];
 
   const startBattle = () => {
-    const pool = [...HIRAGANA.map(h => ({ q: h.char, a: h.romaji })), ...VOCAB.slice(0, 20).map(v => ({ q: `${v.emoji} ${v.jp}`, a: v.meaning }))];
+    const pool = [...HIRAGANA.map(h => ({ q: h.char, a: h.romaji, pron: h.pron, type: 'kana' })), ...VOCAB.slice(0, 20).map(v => ({ q: `${v.emoji} ${v.jp}`, a: v.meaning, pron: v.pron, type: 'vocab' }))];
     const qs = shuffle(pool).slice(0, 10).map(q => {
       const wrongs = shuffle(pool.filter(p => p.a !== q.a)).slice(0, 3).map(w => w.a);
       return { ...q, options: shuffle([q.a, ...wrongs]) };
@@ -1102,8 +1103,9 @@ function BattleScreen({ progress, updateProgress, navigate }) {
         <span className="text-sm font-bold text-sakura-500">👧 {scores[1]}</span>
       </div>
       <div className={`flex-1 flex flex-col items-center justify-center ${anim}`}>
-        <div className="text-6xl jp font-bold text-gray-800 mb-2">{q.q}</div>
-        <button onClick={() => speak(q.q.replace(/[^\u3000-\u9FFF\u30A0-\u30FF\u3040-\u309F]/g,''))} className="text-sm text-sakura-400 font-bold mb-6">🔊 발음 듣기</button>
+        <div className="text-6xl jp font-bold text-gray-800 mb-1">{q.q}</div>
+        {q.pron && <div className="text-lg text-sakura-400 font-bold mb-1">{q.pron}</div>}
+        <button onClick={() => speak(q.type === 'vocab' ? q.q.replace(/[^\u3000-\u9FFF\u30A0-\u30FF\u3040-\u309F]/g,'') : q.q)} className="text-sm text-sakura-400 font-bold mb-6">🔊 발음 듣기</button>
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
           {q.options.map((opt, i) => {
             let cls = `bg-white border-2 ${turn === 0 ? 'border-primary-200' : 'border-sakura-200'} text-gray-800`;
