@@ -135,6 +135,58 @@ const loadData = (key, def) => { try { return JSON.parse(localStorage.getItem(ke
 const saveData = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
 // ═══════════════════════════════════════════
+// KANA EXAMPLE WORDS
+// ═══════════════════════════════════════════
+const KANA_EXAMPLES = {
+  'あ':[{jp:'あめ',meaning:'비',emoji:'🌧️'},{jp:'あさ',meaning:'아침',emoji:'🌅'},{jp:'あお',meaning:'파랑',emoji:'🔵'}],
+  'い':[{jp:'いぬ',meaning:'강아지',emoji:'🐕'},{jp:'いえ',meaning:'집',emoji:'🏠'},{jp:'いち',meaning:'하나',emoji:'1️⃣'}],
+  'う':[{jp:'うみ',meaning:'바다',emoji:'🌊'},{jp:'うた',meaning:'노래',emoji:'🎵'},{jp:'うさぎ',meaning:'토끼',emoji:'🐰'}],
+  'え':[{jp:'えき',meaning:'역',emoji:'🚉'},{jp:'えんぴつ',meaning:'연필',emoji:'✏️'}],
+  'お':[{jp:'おかし',meaning:'과자',emoji:'🍬'},{jp:'おんがく',meaning:'음악',emoji:'🎶'},{jp:'おちゃ',meaning:'차',emoji:'🍵'}],
+  'か':[{jp:'かさ',meaning:'우산',emoji:'☂️'},{jp:'かめ',meaning:'거북이',emoji:'🐢'},{jp:'かぜ',meaning:'바람',emoji:'💨'}],
+  'き':[{jp:'きって',meaning:'우표',emoji:'📮'},{jp:'きもの',meaning:'기모노',emoji:'👘'},{jp:'きいろ',meaning:'노랑',emoji:'🟡'}],
+  'く':[{jp:'くも',meaning:'구름',emoji:'☁️'},{jp:'くるま',meaning:'자동차',emoji:'🚗'},{jp:'くま',meaning:'곰',emoji:'🐻'}],
+  'け':[{jp:'けしゴム',meaning:'지우개',emoji:'🧽'},{jp:'けいたい',meaning:'휴대폰',emoji:'📱'}],
+  'こ':[{jp:'こども',meaning:'어린이',emoji:'👧'},{jp:'こえ',meaning:'목소리',emoji:'🗣️'},{jp:'こい',meaning:'잉어',emoji:'🐟'}],
+  'さ':[{jp:'さくら',meaning:'벚꽃',emoji:'🌸'},{jp:'さかな',meaning:'물고기',emoji:'🐟'},{jp:'さる',meaning:'원숭이',emoji:'🐵'}],
+  'し':[{jp:'しま',meaning:'섬',emoji:'🏝️'},{jp:'しろ',meaning:'하양',emoji:'⚪'},{jp:'しか',meaning:'사슴',emoji:'🦌'}],
+  'す':[{jp:'すし',meaning:'초밥',emoji:'🍣'},{jp:'すいか',meaning:'수박',emoji:'🍉'},{jp:'すな',meaning:'모래',emoji:'🏖️'}],
+  'せ':[{jp:'せんせい',meaning:'선생님',emoji:'👨‍🏫'},{jp:'せかい',meaning:'세계',emoji:'🌍'}],
+  'そ':[{jp:'そら',meaning:'하늘',emoji:'🌤️'},{jp:'そうじ',meaning:'청소',emoji:'🧹'}],
+  'た':[{jp:'たまご',meaning:'달걀',emoji:'🥚'},{jp:'たいよう',meaning:'태양',emoji:'☀️'},{jp:'たこ',meaning:'문어',emoji:'🐙'}],
+  'ち':[{jp:'ちず',meaning:'지도',emoji:'🗺️'},{jp:'ちきゅう',meaning:'지구',emoji:'🌏'},{jp:'ちょう',meaning:'나비',emoji:'🦋'}],
+  'つ':[{jp:'つき',meaning:'달',emoji:'🌙'},{jp:'つくえ',meaning:'책상',emoji:'🪑'},{jp:'つみき',meaning:'블록',emoji:'🧱'}],
+  'て':[{jp:'てがみ',meaning:'편지',emoji:'💌'},{jp:'てんき',meaning:'날씨',emoji:'⛅'},{jp:'て',meaning:'손',emoji:'✋'}],
+  'と':[{jp:'とり',meaning:'새',emoji:'🐦'},{jp:'ともだち',meaning:'친구',emoji:'🤝'},{jp:'とけい',meaning:'시계',emoji:'⏰'}],
+  'な':[{jp:'なつ',meaning:'여름',emoji:'🌻'},{jp:'なまえ',meaning:'이름',emoji:'📛'},{jp:'なみ',meaning:'파도',emoji:'🌊'}],
+  'に':[{jp:'にじ',meaning:'무지개',emoji:'🌈'},{jp:'にく',meaning:'고기',emoji:'🥩'},{jp:'にわ',meaning:'정원',emoji:'🌳'}],
+  'ぬ':[{jp:'ぬいぐるみ',meaning:'인형',emoji:'🧸'},{jp:'ぬの',meaning:'천',emoji:'🧵'}],
+  'ね':[{jp:'ねこ',meaning:'고양이',emoji:'🐱'},{jp:'ねずみ',meaning:'쥐',emoji:'🐭'}],
+  'の':[{jp:'のり',meaning:'김/풀',emoji:'📎'},{jp:'のみもの',meaning:'음료',emoji:'🥤'}],
+  'は':[{jp:'はな',meaning:'꽃',emoji:'🌺'},{jp:'はし',meaning:'젓가락',emoji:'🥢'},{jp:'はち',meaning:'벌',emoji:'🐝'}],
+  'ひ':[{jp:'ひこうき',meaning:'비행기',emoji:'✈️'},{jp:'ひまわり',meaning:'해바라기',emoji:'🌻'},{jp:'ひと',meaning:'사람',emoji:'🧑'}],
+  'ふ':[{jp:'ふね',meaning:'배',emoji:'🚢'},{jp:'ふゆ',meaning:'겨울',emoji:'❄️'},{jp:'ふうせん',meaning:'풍선',emoji:'🎈'}],
+  'へ':[{jp:'へや',meaning:'방',emoji:'🚪'},{jp:'へび',meaning:'뱀',emoji:'🐍'}],
+  'ほ':[{jp:'ほし',meaning:'별',emoji:'⭐'},{jp:'ほん',meaning:'책',emoji:'📖'},{jp:'ほね',meaning:'뼈',emoji:'🦴'}],
+  'ま':[{jp:'まど',meaning:'창문',emoji:'🪟'},{jp:'まくら',meaning:'베개',emoji:'🛏️'},{jp:'まめ',meaning:'콩',emoji:'🫘'}],
+  'み':[{jp:'みず',meaning:'물',emoji:'💧'},{jp:'みかん',meaning:'귤',emoji:'🍊'},{jp:'みみ',meaning:'귀',emoji:'👂'}],
+  'む':[{jp:'むし',meaning:'벌레',emoji:'🐛'},{jp:'むらさき',meaning:'보라',emoji:'🟣'}],
+  'め':[{jp:'め',meaning:'눈(eye)',emoji:'👁️'},{jp:'めがね',meaning:'안경',emoji:'👓'}],
+  'も':[{jp:'もも',meaning:'복숭아',emoji:'🍑'},{jp:'もり',meaning:'숲',emoji:'🌲'},{jp:'もの',meaning:'물건',emoji:'📦'}],
+  'や':[{jp:'やま',meaning:'산',emoji:'⛰️'},{jp:'やさい',meaning:'채소',emoji:'🥬'},{jp:'やすみ',meaning:'휴일',emoji:'🏖️'}],
+  'ゆ':[{jp:'ゆき',meaning:'눈(snow)',emoji:'❄️'},{jp:'ゆめ',meaning:'꿈',emoji:'💭'},{jp:'ゆび',meaning:'손가락',emoji:'☝️'}],
+  'よ':[{jp:'よる',meaning:'밤',emoji:'🌙'},{jp:'よん',meaning:'넷',emoji:'4️⃣'}],
+  'ら':[{jp:'ラーメン',meaning:'라멘',emoji:'🍜'},{jp:'らいおん',meaning:'사자',emoji:'🦁'}],
+  'り':[{jp:'りんご',meaning:'사과',emoji:'🍎'},{jp:'りす',meaning:'다람쥐',emoji:'🐿️'}],
+  'る':[{jp:'るす',meaning:'부재',emoji:'🏠'}],
+  'れ':[{jp:'れいぞうこ',meaning:'냉장고',emoji:'🧊'},{jp:'れきし',meaning:'역사',emoji:'📜'}],
+  'ろ':[{jp:'ろうそく',meaning:'초',emoji:'🕯️'},{jp:'ろく',meaning:'여섯',emoji:'6️⃣'}],
+  'わ':[{jp:'わたし',meaning:'나',emoji:'🙋'},{jp:'わに',meaning:'악어',emoji:'🐊'}],
+  'を':[{jp:'(조사)',meaning:'~을/를',emoji:'📝'}],
+  'ん':[{jp:'みかん',meaning:'귤',emoji:'🍊'},{jp:'パン',meaning:'빵',emoji:'🍞'}],
+};
+
+// ═══════════════════════════════════════════
 // APP
 // ═══════════════════════════════════════════
 function App() {
@@ -629,6 +681,20 @@ function KanaDetail({ item, selected, data, learned, setSelected, markLearned })
         <button onClick={() => speak(item.char)} className="bg-primary-100 text-primary-600 rounded-full px-6 py-2 font-bold mb-3 hover:bg-primary-200">
           🔊 발음 듣기
         </button>
+        {KANA_EXAMPLES[item.char] && (
+          <div className="bg-accent-50 rounded-xl p-3 mb-3 w-full">
+            <div className="text-xs font-bold text-gray-500 mb-2 text-center">📚 예시 단어</div>
+            <div className="flex flex-col gap-1">
+              {KANA_EXAMPLES[item.char].map((ex, i) => (
+                <button key={i} onClick={() => speak(ex.jp)} className="flex items-center gap-2 text-left hover:bg-accent-100 rounded-lg px-2 py-1 transition-colors">
+                  <span className="text-lg">{ex.emoji}</span>
+                  <span className="text-base jp font-bold text-gray-700">{ex.jp}</span>
+                  <span className="text-sm text-gray-400">{ex.meaning}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {strokes.length > 0 && (
           <div className="bg-primary-50 rounded-xl p-3 mb-3 w-full">
             <div className="text-xs font-bold text-gray-500 mb-1 text-center">{strokes.length}획</div>
