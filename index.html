@@ -135,6 +135,84 @@ const loadData = (key, def) => { try { return JSON.parse(localStorage.getItem(ke
 const saveData = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
 // ═══════════════════════════════════════════
+// GIST SYNC
+// ═══════════════════════════════════════════
+const GIST_FILE = 'jihoofamily-progress.json';
+const getSyncConfig = () => loadData('syncConfig', { token: '', gistId: '' });
+const saveSyncConfig = (cfg) => saveData('syncConfig', cfg);
+
+const gistAPI = async (method, url, token, body) => {
+  const opts = { method, headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' } };
+  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  const res = await fetch(url, opts);
+  if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+  return res.json();
+};
+
+const createGist = async (token) => {
+  const allData = getAllUsersProgress();
+  const data = await gistAPI('POST', 'https://api.github.com/gists', token, {
+    description: '지후네 일본어 - 학습 진행 데이터',
+    public: false,
+    files: { [GIST_FILE]: { content: JSON.stringify(allData, null, 2) } }
+  });
+  return data.id;
+};
+
+const readGist = async (token, gistId) => {
+  const data = await gistAPI('GET', `https://api.github.com/gists/${gistId}`, token);
+  const content = data.files[GIST_FILE]?.content;
+  return content ? JSON.parse(content) : null;
+};
+
+const writeGist = async (token, gistId) => {
+  const allData = getAllUsersProgress();
+  allData._lastSync = new Date().toISOString();
+  await gistAPI('PATCH', `https://api.github.com/gists/${gistId}`, token, {
+    files: { [GIST_FILE]: { content: JSON.stringify(allData, null, 2) } }
+  });
+};
+
+const getAllUsersProgress = () => {
+  const users = ['지후파파', '지후', '지후맘'];
+  const data = {};
+  users.forEach(u => { data[u] = loadData(`progress_${u}`, null); });
+  data._lastSync = new Date().toISOString();
+  return data;
+};
+
+const mergeProgress = (local, remote) => {
+  if (!local && !remote) return null;
+  if (!local) return remote;
+  if (!remote) return local;
+  return {
+    hiraLearned: [...new Set([...(local.hiraLearned||[]), ...(remote.hiraLearned||[])])],
+    kataLearned: [...new Set([...(local.kataLearned||[]), ...(remote.kataLearned||[])])],
+    vocabLearned: [...new Set([...(local.vocabLearned||[]), ...(remote.vocabLearned||[])])],
+    stamps: [...new Set([...(local.stamps||[]), ...(remote.stamps||[])])],
+    quizCount: Math.max(local.quizCount||0, remote.quizCount||0),
+    battleCount: Math.max(local.battleCount||0, remote.battleCount||0),
+    bestQuizScore: Math.max(local.bestQuizScore||0, remote.bestQuizScore||0),
+    loginDays: [...new Set([...(local.loginDays||[]), ...(remote.loginDays||[])])].sort(),
+    streak: Math.max(local.streak||0, remote.streak||0),
+  };
+};
+
+const syncAll = async () => {
+  const cfg = getSyncConfig();
+  if (!cfg.token || !cfg.gistId) throw new Error('동기화 설정이 필요합니다');
+  const remote = await readGist(cfg.token, cfg.gistId);
+  const users = ['지후파파', '지후', '지후맘'];
+  users.forEach(u => {
+    const local = loadData(`progress_${u}`, null);
+    const merged = mergeProgress(local, remote?.[u]);
+    if (merged) saveData(`progress_${u}`, merged);
+  });
+  await writeGist(cfg.token, cfg.gistId);
+  saveData('lastSyncTime', new Date().toISOString());
+};
+
+// ═══════════════════════════════════════════
 // KANA EXAMPLE WORDS
 // ═══════════════════════════════════════════
 const KANA_EXAMPLES = {
@@ -271,10 +349,36 @@ function App() {
     }
   }, [user]);
 
+  const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'done' | 'error'
+
+  const doSync = useCallback(async () => {
+    const cfg = getSyncConfig();
+    if (!cfg.token || !cfg.gistId) return;
+    setSyncStatus('syncing');
+    try {
+      await syncAll();
+      if (user) {
+        const fresh = loadData(`progress_${user}`, progress);
+        setProgress(fresh);
+      }
+      setSyncStatus('done');
+      setTimeout(() => setSyncStatus(null), 2000);
+    } catch(e) { console.error('Sync error:', e); setSyncStatus('error'); setTimeout(() => setSyncStatus(null), 3000); }
+  }, [user, progress]);
+
+  // Auto-sync on user login
+  useEffect(() => { if (user) doSync(); }, [user]);
+
   const updateProgress = useCallback((updater) => {
     setProgress(prev => {
       const next = typeof updater === 'function' ? updater(prev) : { ...prev, ...updater };
       saveData(`progress_${user}`, next);
+      // Debounced auto-sync
+      clearTimeout(window._syncTimer);
+      window._syncTimer = setTimeout(() => {
+        const cfg = getSyncConfig();
+        if (cfg.token && cfg.gistId) writeGist(cfg.token, cfg.gistId).catch(console.error);
+      }, 3000);
       return next;
     });
   }, [user]);
@@ -287,7 +391,8 @@ function App() {
   if (!user || screen === 'home') return <HomeScreen onSelect={selectUser} />;
 
   const screens = {
-    menu: <MenuScreen user={user} progress={progress} navigate={navigate} onLogout={logout} />,
+    menu: <MenuScreen user={user} progress={progress} navigate={navigate} onLogout={logout} syncStatus={syncStatus} onSync={doSync} />,
+    sync: <SyncScreen navigate={navigate} onSync={doSync} />,
     hiragana: <KanaScreen type="hiragana" data={HIRAGANA} progress={progress} updateProgress={updateProgress} navigate={navigate} />,
     katakana: <KanaScreen type="katakana" data={KATAKANA} progress={progress} updateProgress={updateProgress} navigate={navigate} />,
     vocab: <VocabScreen progress={progress} updateProgress={updateProgress} navigate={navigate} category={screenData} />,
@@ -336,7 +441,7 @@ function HomeScreen({ onSelect }) {
 // ═══════════════════════════════════════════
 // MENU SCREEN
 // ═══════════════════════════════════════════
-function MenuScreen({ user, progress, navigate, onLogout }) {
+function MenuScreen({ user, progress, navigate, onLogout, syncStatus, onSync }) {
   const hPct = Math.round((progress.hiraLearned.length / HIRAGANA.length) * 100);
   const kPct = Math.round((progress.kataLearned.length / KATAKANA.length) * 100);
   const items = [
@@ -350,6 +455,7 @@ function MenuScreen({ user, progress, navigate, onLogout }) {
     { id:'stats', icon:'📊', label:'진도 현황', sub:`${progress.streak}일 연속`, color:'accent' },
   ];
   const uc = user === '지후파파' ? 'primary' : user === '지후' ? 'sakura' : 'accent';
+  const syncIcon = syncStatus === 'syncing' ? '🔄' : syncStatus === 'done' ? '✅' : syncStatus === 'error' ? '❌' : '☁️';
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white p-4 pb-8">
       <div className="flex items-center justify-between mb-6">
@@ -360,7 +466,11 @@ function MenuScreen({ user, progress, navigate, onLogout }) {
             <div className="text-sm text-gray-400">🔥 {progress.streak}일 연속</div>
           </div>
         </div>
-        <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-600">사용자 변경</button>
+        <div className="flex items-center gap-2">
+          <button onClick={onSync} className="text-lg" title="동기화">{syncIcon}</button>
+          <button onClick={() => navigate('sync')} className="text-sm text-gray-400 hover:text-gray-600">⚙️</button>
+          <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-600">사용자 변경</button>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         {items.map((item, i) => (
@@ -1311,6 +1421,99 @@ function StatsScreen({ user, progress, navigate }) {
           ))}
         </div>
         <p className="text-xs text-gray-400 mt-2">최근 30일 학습일</p>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// SYNC SCREEN
+// ═══════════════════════════════════════════
+function SyncScreen({ navigate, onSync }) {
+  const [cfg, setCfg] = useState(getSyncConfig());
+  const [status, setStatus] = useState('');
+  const [busy, setBusy] = useState(false);
+  const lastSync = loadData('lastSyncTime', null);
+
+  const handleSave = async () => {
+    if (!cfg.token) { setStatus('⚠️ 토큰을 입력해주세요'); return; }
+    setBusy(true); setStatus('저장 중...');
+    try {
+      if (!cfg.gistId) {
+        setStatus('새 Gist 생성 중...');
+        const newId = await createGist(cfg.token);
+        const newCfg = { ...cfg, gistId: newId };
+        setCfg(newCfg);
+        saveSyncConfig(newCfg);
+        setStatus(`✅ 생성 완료! 동기화 코드: ${newId.slice(0,8)}...`);
+      } else {
+        saveSyncConfig(cfg);
+        await syncAll();
+        setStatus('✅ 연결 및 동기화 완료!');
+      }
+      onSync();
+    } catch(e) {
+      setStatus(`❌ 오류: ${e.message}`);
+    }
+    setBusy(false);
+  };
+
+  const handleFullSync = async () => {
+    setBusy(true); setStatus('전체 동기화 중...');
+    try {
+      await syncAll();
+      setStatus('✅ 동기화 완료!');
+      onSync();
+    } catch(e) { setStatus(`❌ ${e.message}`); }
+    setBusy(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white p-4">
+      <button onClick={() => navigate('menu')} className="text-primary-500 font-bold mb-4">← 메뉴로</button>
+      <h2 className="text-xl font-bold text-gray-800 mb-1">☁️ 클라우드 동기화</h2>
+      <p className="text-sm text-gray-500 mb-6">PC·휴대폰·태블릿 어디서든 학습 진행을 이어갈 수 있어요</p>
+
+      <div className="bg-white rounded-2xl shadow-md p-5 mb-4">
+        <h3 className="font-bold text-gray-700 mb-3">1단계: GitHub 토큰 입력</h3>
+        <p className="text-xs text-gray-400 mb-2">github.com → Settings → Developer settings → Personal access tokens (classic) → 'gist' 권한만 체크하여 생성</p>
+        <input type="password" value={cfg.token} onChange={e => setCfg({...cfg, token: e.target.value})}
+          placeholder="ghp_xxxxxxxxxxxx"
+          className="w-full border rounded-xl px-4 py-3 text-sm mb-2 focus:ring-2 focus:ring-primary-300 outline-none" />
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-md p-5 mb-4">
+        <h3 className="font-bold text-gray-700 mb-3">2단계: 동기화 코드</h3>
+        <p className="text-xs text-gray-400 mb-2">처음이면 비워두세요 (자동 생성). 다른 기기에서는 첫 기기에서 생성된 코드를 입력하세요.</p>
+        <input type="text" value={cfg.gistId} onChange={e => setCfg({...cfg, gistId: e.target.value})}
+          placeholder="비워두면 자동 생성"
+          className="w-full border rounded-xl px-4 py-3 text-sm mb-2 focus:ring-2 focus:ring-primary-300 outline-none font-mono" />
+        {cfg.gistId && <p className="text-xs text-primary-500">📋 이 코드를 다른 기기에 입력하세요: <span className="font-mono font-bold select-all">{cfg.gistId}</span></p>}
+      </div>
+
+      <button onClick={handleSave} disabled={busy}
+        className="w-full bg-primary-500 text-white rounded-xl py-3 font-bold mb-3 hover:bg-primary-600 disabled:opacity-50">
+        {busy ? '처리 중...' : cfg.gistId ? '💾 저장 및 동기화' : '🆕 새로 시작하기'}
+      </button>
+
+      {cfg.gistId && (
+        <button onClick={handleFullSync} disabled={busy}
+          className="w-full bg-accent-100 text-accent-600 rounded-xl py-3 font-bold mb-3 hover:bg-accent-200 disabled:opacity-50">
+          🔄 지금 동기화
+        </button>
+      )}
+
+      {status && <div className="text-center text-sm mt-2 font-medium">{status}</div>}
+      {lastSync && <div className="text-center text-xs text-gray-400 mt-3">마지막 동기화: {new Date(lastSync).toLocaleString('ko-KR')}</div>}
+
+      <div className="bg-yellow-50 rounded-xl p-4 mt-6 text-xs text-yellow-700">
+        <div className="font-bold mb-1">💡 사용 방법</div>
+        <ol className="list-decimal list-inside space-y-1">
+          <li>첫 번째 기기에서 토큰 입력 후 '새로 시작하기' 클릭</li>
+          <li>생성된 <b>동기화 코드</b>를 메모</li>
+          <li>다른 기기에서 같은 토큰 + 동기화 코드 입력</li>
+          <li>이후 자동으로 동기화됩니다!</li>
+        </ol>
       </div>
     </div>
   );
